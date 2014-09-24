@@ -6,7 +6,7 @@ import re
 
 class ComponentCreator(object):
     def makeMCComponent(self,name,dataset,user,pattern):
-        
+
          component = cfg.MCComponent(
              dataset=dataset,
              name = name,
@@ -39,7 +39,7 @@ class ComponentCreator(object):
 
  #        print 'Skim Efficiency for ',name,'=', component.skimEfficiency
          return component
-    
+
     ### MM
     def makeMyPrivateMCComponent(self,name,dataset,user,pattern,dbsInstance):
 
@@ -62,7 +62,7 @@ class ComponentCreator(object):
         try:
             files = getDatasetFromCache('EOS%{path}%{pattern}.pck'.format(path = path.replace('/','_'), pattern = pattern))
         except IOError:
-            files = [ 'root://eoscms.cern.ch/'+x for x in eostools.listFiles('/eos/cms'+path) if re.match(pattern,x) ] 
+            files = [ 'root://eoscms.cern.ch/'+x for x in eostools.listFiles('/eos/cms'+path) if re.match(pattern,x) ]
             if len(files) == 0:
                 raise RuntimeError, "ERROR making component %s: no files found under %s matching '%s'" % (name,path,pattern)
             writeDatasetToCache('EOS%{path}%{pattern}.pck'.format(path = path.replace('/','_'), pattern = pattern), files)
@@ -84,7 +84,7 @@ class ComponentCreator(object):
 
          for dataset in datasets:
              files=files+self.getFiles(dataset,user,pattern)
-        
+
          component = cfgDataComponent(
              dataset=dataset,
              name = name,
@@ -101,7 +101,13 @@ class ComponentCreator(object):
         # print 'getting files for', dataset,user,pattern
         ds = datasetToSource( user, dataset, pattern, True )
         files = ds.fileNames
-        return ['root://eoscms.cern.ch//eos/cms%s' % f for f in files]
+        #return ['root://eoscms//eos/cms%s' % f for f in files]
+        #return ['root://eoscms.cern.ch//eos/cms%s' % f for f in files]
+        #return ['root://xrootd.unl.edu/%s' % f for f in files]
+        #return ['root://xrootd.ba.infn.it/%s' % f for f in files]
+        #return ['root://dcache-se-cms.desy.de/%s' % f for f in files]
+        #return ['file:/pnfs/desy.de/cms/tier2%s' % f for f in files]
+        return ['dcap://dcache-cms-dcap.desy.de//pnfs/desy.de/cms/tier2%s' % f for f in files]
 
     ### MM
     def getMyFiles(self, dataset, user, pattern, dbsInstance):
@@ -116,5 +122,4 @@ class ComponentCreator(object):
         fraction=info.dataset_details['PrimaryDatasetFraction']
         if fraction<0.001:
             print 'ERROR FRACTION IS ONLY ',fraction
-        return fraction 
-        
+        return fraction
