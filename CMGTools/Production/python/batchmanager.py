@@ -46,7 +46,6 @@ class BatchManager:
                                 help="batch command. default is: 'bsub -q 8nh < batchScript.sh'. You can also use 'nohup < ./batchScript.sh &' to run locally.",
                                 default="bsub -q 8nh < ./batchScript.sh")
 
-
     def ParseOptions(self):
         (self.options_,self.args_) = self.parser_.parse_args()
         if self.options_.remoteCopy == None:
@@ -54,28 +53,44 @@ class BatchManager:
         else:
             # removing possible trailing slash
             self.remoteOutputDir_ = self.options_.remoteCopy.rstrip('/')
-            if not castortools.isLFN( self.remoteOutputDir_ ):
-                print 'When providing an output directory, you must give its LFN, starting by /store. You gave:'
-                print self.remoteOutputDir_
-                sys.exit(1)
-            self.remoteOutputDir_ = castortools.lfnToEOS( self.remoteOutputDir_ )
-            dirExist = castortools.isDirectory( self.remoteOutputDir_ )
-            # nsls = 'nsls %s > /dev/null' % self.remoteOutputDir_
-            # dirExist = os.system( nsls )
-            if dirExist is False:
-                print 'creating ', self.remoteOutputDir_
-                if castortools.isEOSFile( self.remoteOutputDir_ ):
-                    # the output directory is currently a file..
-                    # need to remove it.
-                    castortools.rm( self.remoteOutputDir_ )
-                castortools.createEOSDir( self.remoteOutputDir_ )
-            else:
-                # directory exists.
-                if self.options_.negate is False and self.options_.force is False:
-                    #COLIN need to reimplement protectedRemove in eostools
-                    raise ValueError(  ' '.join(['directory ', self.remoteOutputDir_, ' already exists.']))
-                # if not castortools.protectedRemove( self.remoteOutputDir_, '.*root'):
-                # the user does not want to delete the root files
+            if "psi.ch" in self.remoteOutputDir_: # T3 @ PSI:
+                # overwriting protection to be improved
+                if self.remoteOutputDir_.startswith("/pnfs/psi.ch"):
+                    os.system("gfal-mkdir srm://t3se01.psi.ch/"+self.remoteOutputDir_)
+                    outputDir = self.options_.outputDir
+                    if outputDir==None:
+                        today = datetime.today()
+                        outputDir = 'OutCmsBatch_%s' % today.strftime("%d%h%y_%H%M")
+                    self.remoteOutputDir_+="/"+outputDir
+                    os.system("gfal-mkdir srm://t3se01.psi.ch/"+self.remoteOutputDir_)
+                else:
+                    print "remote directory must start with /pnfs/psi.ch to send to the tier3 at PSI"
+                    print self.remoteOutputDir_, "not valid"
+                    sys.exit(1)
+            else: # assume EOS
+                if not castortools.isLFN( self.remoteOutputDir_ ):
+                    print 'When providing an output directory, you must give its LFN, starting by /store. You gave:'
+                    print self.remoteOutputDir_
+                    sys.exit(1)          
+                self.remoteOutputDir_ = castortools.lfnToEOS( self.remoteOutputDir_ )
+                dirExist = castortools.isDirectory( self.remoteOutputDir_ )           
+                # nsls = 'nsls %s > /dev/null' % self.remoteOutputDir_
+                # dirExist = os.system( nsls )
+                if dirExist is False:
+                    print 'creating ', self.remoteOutputDir_
+                    if castortools.isEOSFile( self.remoteOutputDir_ ):
+                        # the output directory is currently a file..
+                        # need to remove it.
+                        castortools.rm( self.remoteOutputDir_ )
+                    castortools.createEOSDir( self.remoteOutputDir_ )
+                else:
+                    # directory exists.
+                    if self.options_.negate is False and self.options_.force is False:
+                        #COLIN need to reimplement protectedRemove in eostools
+                        raise ValueError(  ' '.join(['directory ', self.remoteOutputDir_, ' already exists.']))
+                        # if not castortools.protectedRemove( self.remoteOutputDir_, '.*root'):
+                        # the user does not want to delete the root files                          
+
         self.remoteOutputFile_ = ""
         self.ManageOutputDir()
         return (self.options_, self.args_)
@@ -217,17 +232,23 @@ class BatchManager:
 
 
     def RunningMode(self, batch):
-        '''Returns "LXPLUS", "NAF", "LOCAL" or None,
+
+        '''Return "LXPUS", "PSI", "NAF", "LOCAL", or None,
 
         "LXPLUS" : batch command is bsub, and logged on lxplus
-        "NAF" : batch command is qsub, and logged on naf
-        "LOCAL" : batch command is nohup.
+        "PSI"    : batch command is qsub, and logged to t3uiXX
+        "NAF"    : batch command is qsub, and logged on naf
+        "LOCAL"  : batch command is nohup.
+
         In all other cases, a CmsBatchException is raised
         '''
 
         hostName = os.environ['HOSTNAME']
-        onLxplus =  hostName.startswith('lxplus')
+
+        onLxplus = hostName.startswith('lxplus')
+        onPSI    = hostName.startswith('t3ui')
         onNaf =  hostName.startswith('naf')
+
         batchCmd = batch.split()[0]
 
         if batchCmd == 'bsub':
@@ -238,13 +259,18 @@ class BatchManager:
                 print 'running on LSF : %s from %s' % (batchCmd, hostName)
                 return 'LXPLUS'
 
-        if batchCmd == 'qsub':
-            if not onNaf:
+        elif batchCmd == "qsub":
+            if not (onPSI or onNaf):
                 err = 'Cannot run %s on %s' % (batchCmd, hostName)
                 raise ValueError( err )
             else:
-                print 'running on NAF : %s from %s' % (batchCmd, hostName)
-                return 'NAF'
+                if onPSI:
+                    print 'running on SGE : %s from %s' % (batchCmd, hostName)
+                    return 'PSI'
+
+                elif onNaf:
+                    print 'running on NAF : %s from %s' % (batchCmd, hostName)
+                    return 'NAF'
 
         elif batchCmd == 'nohup' or batchCmd == './batchScript.sh':
             print 'running locally : %s on %s' % (batchCmd, hostName)
