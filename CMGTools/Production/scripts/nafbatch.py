@@ -75,6 +75,10 @@ def batchScriptDESY( jobDir='/nfs/dust/cms/user/lobanov/SUSY/Run2/CMG/CMSSW_7_0_
 ##(send mail on job's end and abort)
 ##$ -m a
 #$ -l site=hh
+## transfer env var from submission host
+#$ -V
+## set cwd to submission host pwd
+#$ -cwd
 ## define outputdir,executable,config file and LD_LIBRARY_PATH
 #$ -v OUTDIR="""
 
@@ -104,7 +108,7 @@ cd *_Chunk$jobID
 echo 'running in dir' `pwd`
 python $CMSSW_BASE/src/CMGTools/RootTools/python/fwlite/Looper.py config.pck
 echo
-echo 'sending the job directory back'
+echo job end at `date`
 """
    return script
 
