@@ -1,6 +1,6 @@
 ##########################################################
-##       CONFIGURATION FOR SUSY MULTILEPTON TREES       ##
-## skim condition: >= 2 loose leptons, no pt cuts or id ##
+##       CONFIGURATION FOR SUSY SINGLELEPTON TREES      ##
+## skim condition: >= 1 loose leptons, no pt cuts or id ##
 ##########################################################
 
 import CMGTools.RootTools.fwlite.Config as cfg
