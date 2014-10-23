@@ -1,6 +1,6 @@
 ##########################################################
 ##       CONFIGURATION FOR SUSY SINGLELEPTON TREES      ##
-## skim condition: >= 1 loose leptons, no pt cuts or id ##
+##  condition: >= 1 loose leptons, no pt cuts or id     ##
 ##########################################################
 
 import CMGTools.RootTools.fwlite.Config as cfg
@@ -10,23 +10,34 @@ from CMGTools.RootTools.RootTools import *
 #Load all analyzers
 from CMGTools.TTHAnalysis.analyzers.susyCore_modules_cff import * 
 
-# Redefine what I need
+ttHLepAna.loose_muon_pt  = 10
+ttHLepAna.loose_muon_relIso = 0.2
+ttHLepAna.loose_electron_pt  = 10
+ttHLepAna.loose_electron_relIso = 0.2
+ttHLepAna.ele_isoCorr = "deltaBeta"
 
-# --- LEPTON SKIMMING ---
-ttHLepSkim.minLeptons = 1
-ttHLepSkim.maxLeptons = 999
-#ttHLepSkim.idCut  = ""
-#ttHLepSkim.ptCuts = []
-
-
-# Event Analyzer for susy multi-lepton (at the moment, it's the TTH one)
+# Event Analyzer for susySingleLepton  (at the moment, it's still he TTH one)
 ttHEventAna = cfg.Analyzer(
     'ttHLepEventAnalyzer',
     minJets25 = 0,
     )
 
 
-
+ttHIsoTrackAna = cfg.Analyzer(
+            'ttHIsoTrackAnalyzer',
+            candidates='packedPFCandidates',
+            candidatesTypes='std::vector<pat::PackedCandidate>',
+            ptMin = 5, # for pion 
+            ptMinEMU = 5, # for EMU
+            dzMax = 0.1,
+            isoDR = 0.3,
+            ptPartMin = 0,
+            dzPartMax = 0.1,
+            maxAbsIso = 8,
+            MaxIsoSum = 0.1, ### unused
+            MaxIsoSumEMU = 0.2, ### unused
+            doSecondVeto = False
+            )
 
 # Tree Producer
 treeProducer = cfg.Analyzer(
@@ -37,7 +48,6 @@ treeProducer = cfg.Analyzer(
 
     )
 
-
 #-------- SAMPLES AND TRIGGERS -----------
 from CMGTools.TTHAnalysis.samples.samples_13TeV_CSA14_desy import *
 selectedComponents = [ TTJets_PU20bx25_V52 ]
@@ -47,9 +57,9 @@ selectedComponents = [ TTJets_PU20bx25_V52 ]
 
 sequence = cfg.Sequence(susyCoreSequence+[
     ttHEventAna,
+    ttHIsoTrackAna,
     treeProducer,
     ])
-
 
 #-------- HOW TO RUN
 test = 1
