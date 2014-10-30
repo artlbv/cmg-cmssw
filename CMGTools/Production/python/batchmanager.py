@@ -71,9 +71,9 @@ class BatchManager:
                 if not castortools.isLFN( self.remoteOutputDir_ ):
                     print 'When providing an output directory, you must give its LFN, starting by /store. You gave:'
                     print self.remoteOutputDir_
-                    sys.exit(1)          
+                    sys.exit(1)
                 self.remoteOutputDir_ = castortools.lfnToEOS( self.remoteOutputDir_ )
-                dirExist = castortools.isDirectory( self.remoteOutputDir_ )           
+                dirExist = castortools.isDirectory( self.remoteOutputDir_ )
                 # nsls = 'nsls %s > /dev/null' % self.remoteOutputDir_
                 # dirExist = os.system( nsls )
                 if dirExist is False:
@@ -88,8 +88,8 @@ class BatchManager:
                     if self.options_.negate is False and self.options_.force is False:
                         #COLIN need to reimplement protectedRemove in eostools
                         raise ValueError(  ' '.join(['directory ', self.remoteOutputDir_, ' already exists.']))
-                        # if not castortools.protectedRemove( self.remoteOutputDir_, '.*root'):
-                        # the user does not want to delete the root files                          
+                    # if not castortools.protectedRemove( self.remoteOutputDir_, '.*root'):
+                    # the user does not want to delete the root files
 
         self.remoteOutputFile_ = ""
         self.ManageOutputDir()
@@ -188,9 +188,7 @@ class BatchManager:
 
     def SubmitJobArray( self, numbOfJobs = 1 ):
         '''Hook for array job submission.'''
-        print '\to be cusomized'
-#        print 'submitting (to be customized): ', outputDir
-#        os.system( self.options_.batch )
+        print 'Submitting array with %s jobs'  % numbOfJobs
 
     def CheckBatchScript( self, batchScript ):
 
@@ -247,7 +245,7 @@ class BatchManager:
 
         onLxplus = hostName.startswith('lxplus')
         onPSI    = hostName.startswith('t3ui')
-        onNaf =  hostName.startswith('naf')
+        onNAF =  hostName.startswith('naf')
 
         batchCmd = batch.split()[0]
 
@@ -260,17 +258,15 @@ class BatchManager:
                 return 'LXPLUS'
 
         elif batchCmd == "qsub":
-            if not (onPSI or onNaf):
+            if onPSI:
+                print 'running on SGE : %s from %s' % (batchCmd, hostName)
+                return 'PSI'
+            elif onNAF:
+                print 'running on NAF : %s from %s' % (batchCmd, hostName)
+                return 'NAF'
+            else:
                 err = 'Cannot run %s on %s' % (batchCmd, hostName)
                 raise ValueError( err )
-            else:
-                if onPSI:
-                    print 'running on SGE : %s from %s' % (batchCmd, hostName)
-                    return 'PSI'
-
-                elif onNaf:
-                    print 'running on NAF : %s from %s' % (batchCmd, hostName)
-                    return 'NAF'
 
         elif batchCmd == 'nohup' or batchCmd == './batchScript.sh':
             print 'running locally : %s on %s' % (batchCmd, hostName)

@@ -57,7 +57,7 @@ cp -r Loop/* $LS_SUBCWD
 """
    return script
 
-def batchScriptDESY( jobDir='/nfs/dust/cms/user/lobanov/SUSY/Run2/CMG/CMSSW_7_0_6_patch1/src/CMGTools/TTHAnalysis/cfg/output_Directory/TTJets_PU20bx25_V52'):
+def batchScriptNAF( jobDir='/nfs/dust/cms/user/lobanov/SUSY/Run2/CMG/CMSSW_7_0_6_patch1/src/CMGTools/TTHAnalysis/cfg/output_Directory/TTJets_PU20bx25_V52'):
    '''prepare the NAF version of the batch script, to run on NAF'''
    script = """#!/bin/bash
 ## make sure the right shell will be used
@@ -81,13 +81,13 @@ def batchScriptDESY( jobDir='/nfs/dust/cms/user/lobanov/SUSY/Run2/CMG/CMSSW_7_0_
 #$ -cwd
 ## define outputdir,executable,config file and LD_LIBRARY_PATH
 #$ -v OUTDIR="""
-
+#append Job directory
    script += jobDir
    script += """
 ##$ -v OUTDIR=/afs/desy.de/user/l/lobanov/calib/Batch/
 ## define dir for stdout
 #$ -o """
-
+#append log directory
    script += jobDir
    script += """/logs"""
    script += """
@@ -102,8 +102,11 @@ eval `scramv1 ru -sh`
 # cd $LS_SUBCWD
 # eval `scramv1 ru -sh`
 cd $OUTDIR
-jobID=$SGE_TASK_ID
-cd *_Chunk$jobID
+TaskID=$((SGE_TASK_ID+1))
+#cd *_Chunk$TaskID
+JobDir=$(find . -maxdepth 1 -type d ! -name "logs" | sed ''$TaskID'q;d')
+echo "Changing to job dir" $JobDir
+cd $JobDir
 
 echo 'running in dir' `pwd`
 python $CMSSW_BASE/src/CMGTools/RootTools/python/fwlite/Looper.py config.pck
@@ -135,8 +138,16 @@ class MyBatchManager( BatchManager ):
        print components[value]
 
        #prepare the batch script
-       outputDir = self.outputDir_
-       scriptFileName = outputDir+'/batchScript.sh'
+
+       # array job requires only 1 batchscript
+       if '-t' in options.batch:
+           outputDir = self.outputDir_
+           scriptFileName = outputDir+'/batchScript.sh'
+       # batchscript in each jobDir
+       else:
+           outputDir = jobDir
+           scriptFileName = jobDir+'/batchScript.sh'
+
        if not os.path.isfile(scriptFileName):
            scriptFile = open(scriptFileName,'w')
            storeDir = self.remoteOutputDir_.replace('/castor/cern.ch/cms','')
@@ -145,8 +156,8 @@ class MyBatchManager( BatchManager ):
 
            if mode == 'LXPLUS':
                scriptFile.write( batchScriptCERN( storeDir, value) )
-           if mode == 'NAF':
-               scriptFile.write( batchScriptDESY( outputDir ) )
+           elif mode == 'NAF':
+               scriptFile.write( batchScriptNAF( outputDir ) )
            elif mode == 'LOCAL':
                scriptFile.write( batchScriptLocal( storeDir, value) )
 
@@ -163,9 +174,7 @@ class MyBatchManager( BatchManager ):
 
    def SubmitJobArray(self, numbOfJobs):
        '''Submit all jobs as an array.'''
-#       numbOfJobs = len(components)
        outputDir = self.outputDir_
-#       outputDir = self.options_.outputDir
        print 'Number of jobs', numbOfJobs
        print 'Outputdir', outputDir
 
@@ -201,12 +210,12 @@ if __name__ == '__main__':
     listOfValues = range(0, len(components))
     listOfNames = [comp.name for comp in components]
 
-    print 'Preparing my jobs'
+    print 'Preparing jobs'
     batchManager.PrepareJobs( listOfValues, listOfNames )
 
     if '-t' not in options.batch:
         waitingTime = 0.1
         batchManager.SubmitJobs( waitingTime )
     else:
-        print 'Submittinh job array'
+        print 'Submitting job array'
         batchManager.SubmitJobArray(len(listOfNames))
