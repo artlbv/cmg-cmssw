@@ -53,7 +53,21 @@ TTJets_PU40bx25_V52 = kreator.makeMCComponent("TTJets_PU40bx25_V52",    "/TTJets
 
 ZprimeToMuMu_1000_PU20bx25_V52 = kreator.makeMCComponent("ZprimeToMuMu_1000_PU20bx25_V52",    "/ZprimeToMuMu_M-1000_Tune4C_13TeV-pythia8/Spring14miniaod-PU20bx25_POSTLS170_V5-v1/MINIAODSIM", "CMS", ".*root")
 
+## LOCALLY PRODUCED SIGNAL SAMPLES
+def _grep(x,l): return [ i for i in l if x in i ]
+
+t1tttt_800_450_Files = [ f.strip() for f in open("%s/src/CMGTools/TTHAnalysis/python/samples/fullSim-t1tttt_800_450.txt" % os.environ['CMSSW_BASE'], "r") ]
+sq_gl_1300_Files = [ f.strip() for f in open("%s/src/CMGTools/TTHAnalysis/python/samples/fullSim-gl-sq-1300.txt" % os.environ['CMSSW_BASE'], "r") ]
+fullSim_t1qqqq_Files = [ f.strip() for f in open("%s/src/CMGTools/TTHAnalysis/python/samples/fullSim-t1qqqq-1400-15.txt" % os.environ['CMSSW_BASE'], "r") ]
+
+SMS_T1tttt_2J_mGl800_mLSP450_PU_S14 = kreator.makePrivateMCComponent('SMS_T1tttt_2J_mGl800_mLSP450_PU_S14',  '/nfs/dust/cms/group/susy-desy/Run2/MC/MiniAOD/13TeV_T1tttt_gluino_800_LSP_450/',   _grep('T1tttt_gluino_800_LSP_450_', t1tttt_800_450_Files) )
+SMS_Gl_Sq_mGl1300_mSq1300_PU_S14 = kreator.makePrivateMCComponent('SMS_Gl_Sq_mGl1300_mSq1300_PU_S14',  '/nfs/dust/cms/group/susy-desy/Run2/MC/MiniAOD/13TeV_Sq_Gl_4t_Gl1300_Sq1300_LSP100/',   _grep('13TeV_', sq_gl_1300_Files) )
+SMS_Gl_Gl_mGl1400_mLSP300_mChi315_PU_S14 = kreator.makePrivateMCComponent('SMS_Gl_Gl_mGl1400_mLSP300_mChi315_PU_S14',  '/nfs/dust/cms/group/susy-desy/Run2/MC/MiniAOD/13TeV_Gl_Gl_4q_Gl1400_LSP300_Chi315/',   _grep('13TeV_', fullSim_t1qqqq_Files) )
+#SMS_T1tttt_2J_mGl800_mLSP450_PU_S14_POSTLS170 = kreator.makePrivateMCComponent("SMS_T1tttt_2J_mGl800_mLSP450_PU_S14_POSTLS170", [ "/nfs/dust/cms/group/susy-desy/Run2/MC/MiniAOD/Merged/13TeV_T1tttt_gluino_800_LSP_450_MiniAOD.root" ])
+
+
 mcSamples = [ TTJets_PU20bx25_V52,TTJets_PU40bx25_V52,ZprimeToMuMu_1000_PU20bx25_V52 ]
+fullSimSamples= [ SMS_T1tttt_2J_mGl800_mLSP450_PU_S14, SMS_Gl_Sq_mGl1300_mSq1300_PU_S14, SMS_Gl_Gl_mGl1400_mLSP300_mChi315_PU_S14 ]
 
 #-----------DATA---------------
 dataDir = os.environ['CMSSW_BASE']+"/src/CMGTools/TTHAnalysis/data"
@@ -88,7 +102,7 @@ from CMGTools.TTHAnalysis.setup.Efficiencies import *
 
 
 #Define splitting
-for comp in mcSamples:
+for comp in mcSamples + fullSimSamples:
     comp.isMC = True
     comp.isData = False
     comp.splitFactor = 1 #  if comp.name in [ "WJets", "DY3JetsM50", "DY4JetsM50","W1Jets","W2Jets","W3Jets","W4Jets","TTJetsHad" ] else 100
