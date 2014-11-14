@@ -29,7 +29,7 @@ def postProcessBaby( dir, dataset, fast ) :
    print "-> Post-processing dataset: " + dataset
 
 #   oldFileName = dir + str("/") + dataset + str("/treeProducerSusyFullHad/treeProducerSusyFullHad_tree.root")
-   oldFileName = dir + str("/") + dataset + str("/treeProducerSusySingleLepton/treeProducerSusySingleLepton_tree.root")
+   oldFileName = dir + str("/") + dataset + str("/Loop/treeProducerSusySingleLepton/treeProducerSusySingleLepton_tree.root")
    oldfile = TFile(oldFileName)
    oldtree = oldfile.Get("treeProducerSusySingleLepton")
 
