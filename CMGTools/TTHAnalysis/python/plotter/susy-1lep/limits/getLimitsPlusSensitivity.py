@@ -13,11 +13,12 @@ if 'CMSSW_7_1' not in cmssw_vers:
     print "Need CMSSW_7_1_X with limit tool!"
     exit(0)
 
-cardDirectory="susy_cards_1l_4fb_csv_nostop"
+cardDirectory="susy_cards_1l_4fb_allBins"
 cardDirectory = os.path.abspath(cardDirectory)
 
 limitDir = cardDirectory+"/limits/"
 if not os.path.isdir(limitDir):
+    print 'Creating limit dir', limitDir
     os.mkdir(limitDir)
 
 print 'Entering out dir', limitDir
@@ -107,4 +108,4 @@ for s_i, s in enumerate(Samples):
         # fill dict
         #limitdict[(s,v)]= (limitline.split("<")[1]).split()[0]
 
-print limitdict
+#print limitdict
