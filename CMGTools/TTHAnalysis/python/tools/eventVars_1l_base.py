@@ -16,18 +16,21 @@ def getPhysObjectArray(j): # https://github.com/HephySusySW/Workspace/blob/72X-m
 
 class EventVars1L_base:
     def __init__(self):
-        self.branches = [ "MET", "DeltaPhiLepW",
-                          ("nTightLeps","I"),("tightLepsIdx","I",10,"nTightLeps"),("nVetoLeps","I"),("vetoLepsIdx","I",10,"nVetoLeps"),
-                          ("tightLeps_DescFlag","I",10,"nTightLeps"),
-                          ("nTightEl","I"),("tightElIdx","I",10,"nTightEl"),("nVetoEl","I"),("vetoElIdx","I",10,"nVetoEl"),
-                          ("nTightMu","I"),("tightMuIdx","I",10,"nTightMu"),("nVetoMu","I"),("vetoMuIdx","I",10,"nVetoMu"),
-                          'HT','ST','LepGood1_pt','LepGood1_pdgId','LepGood1_eta','LepGood1_phi','Lp',
-                          ("nCentralJet30","I"),("centralJet30idx","I",100,"nCentralJet30"),("centralJet30_DescFlag","F",100,"nCentralJet30"),
-                          ("nBJetMedium30","I"),("BJetMedium30idx","I",50,"nBJetMedium30"),
-                          "nGoodBJets_allJets", "nGoodBJets",
-                          "LSLjetptGT80", "htJet30j", "htJet30ja",
-                          "nHighPtTopTag", "nHighPtTopTagPlusTau23"
-                          ]
+        self.branches = [
+            'Run','Event','Lumi','Xsec',
+            ("nTightLeps","I"),("tightLepsIdx","I",10,"nTightLeps"),("nVetoLeps","I"),("vetoLepsIdx","I",10,"nVetoLeps"),
+            ("tightLeps_DescFlag","I",10,"nTightLeps"),
+            ("nTightEl","I"),("tightElIdx","I",10,"nTightEl"),("nVetoEl","I"),("vetoElIdx","I",10,"nVetoEl"),
+            ("nTightMu","I"),("tightMuIdx","I",10,"nTightMu"),("nVetoMu","I"),("vetoMuIdx","I",10,"nVetoMu"),
+            'LepGood1_pdgId','LepGood1_eta','LepGood1_phi','Lp',
+            "MET", "DeltaPhiLepW",
+            'HT','ST','LepGood1_pt',
+            ("nCentralJet30","I"),("centralJet30idx","I",100,"nCentralJet30"),("centralJet30_DescFlag","F",100,"nCentralJet30"),
+            ("nBJetMedium30","I"),("BJetMedium30idx","I",50,"nBJetMedium30"),
+            "nGoodBJets_allJets", "nGoodBJets",
+            "LSLjetptGT80", "htJet30j", "htJet30ja",
+            "nHighPtTopTag", "nHighPtTopTagPlusTau23"
+            ]
 
     def listBranches(self):
         return self.branches[:]
@@ -43,6 +46,12 @@ class EventVars1L_base:
                 ret[name] = []
             elif type(name) == 'str':
                 ret[name] = -999
+
+        # copy basic event info:
+        ret['Run'] = event.run
+        ret['Event'] = event.evt
+        ret['Lumi'] = event.lumi
+        ret['Xsec'] = event.xsec
 
         # make python lists as Collection does not support indexing in slices
         genleps = [l for l in Collection(event,"genLep","ngenLep")]
@@ -248,8 +257,6 @@ class EventVars1L_base:
             vetoMu = softVetoMu
             vetoMuIdx = softVetoMuIdx
 
-        #initialize the dictionary with a first entry
-        ret = {}
         #ret = { 'nTightLeps'   : len(tightLeps) }
         ret['nTightLeps'] = len(tightLeps)
         ret['tightLepsIdx'] = tightLepsIdx
