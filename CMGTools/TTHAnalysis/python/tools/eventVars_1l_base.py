@@ -21,7 +21,7 @@ class EventVars1L_base:
                           ("tightLeps_DescFlag","I",10,"nTightLeps"),
                           ("nTightEl","I"),("tightElIdx","I",10,"nTightEl"),("nVetoEl","I"),("vetoElIdx","I",10,"nVetoEl"),
                           ("nTightMu","I"),("tightMuIdx","I",10,"nTightMu"),("nVetoMu","I"),("vetoMuIdx","I",10,"nVetoMu"),
-                          'HT','ST','LepGood1_pt','LepGood1_pdgId','LepGood1_eta',
+                          'HT','ST','LepGood1_pt','LepGood1_pdgId','LepGood1_eta','LepGood1_phi','Lp',
                           ("nCentralJet30","I"),("centralJet30idx","I",100,"nCentralJet30"),("centralJet30_DescFlag","F",100,"nCentralJet30"),
                           ("nBJetMedium30","I"),("BJetMedium30idx","I",50,"nBJetMedium30"),
                           "nGoodBJets_allJets", "nGoodBJets",
@@ -267,19 +267,16 @@ class EventVars1L_base:
         ret['vetoMuIdx'] = vetoMuIdx
 
         # save leading lepton vars
-        '''
-        ret['LepGood1_pt'] = -99
-        ret['LepGood1_eta'] = -99
-        ret['LepGood1_pdgId'] = -99
-        '''
 
         if len(tightLeps) > 0:
             ret['LepGood1_pt'] = tightLeps[0].pt
             ret['LepGood1_eta'] = tightLeps[0].eta
+            ret['LepGood1_phi'] = tightLeps[0].phi
             ret['LepGood1_pdgId'] = tightLeps[0].pdgId
         elif len(leps) > 0: # fill it with leading lepton
             ret['LepGood1_pt'] = leps[0].pt
             ret['LepGood1_eta'] = leps[0].eta
+            ret['LepGood1_phi'] = leps[0].phi
             ret['LepGood1_pdgId'] = leps[0].pdgId
 
         ### JETS
@@ -329,14 +326,17 @@ class EventVars1L_base:
         dPhiLepW = -999 # set default value to -999 to spot "empty" entries
         # ST of lepton and MET
         ST = -999
+        Lp = -99
 
         if len(tightLeps) >=1:
             recoWp4 =  tightLeps[0].p4() + metp4
             dPhiLepW = tightLeps[0].p4().DeltaPhi(recoWp4)
+            Lp = tightLeps[0].pt / recoWp4.Pt() * cos(dPhiLepW)
             ST = tightLeps[0].pt + event.met_pt
 
         ret["DeltaPhiLepW"] = dPhiLepW
         ret['ST'] = ST
+        ret['Lp'] = Lp
 
         centralJet30_DescFlag = []
         tightLeps_DescFlag = []
