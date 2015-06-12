@@ -19,9 +19,11 @@ def loopFile(tfile):
         hist = key.ReadObj()
 
         if 'TH1' in str(type(hist)):
-            if 'signal' in hist.GetName():
+            if 'QCD' in hist.GetName():
 
-                newName = hist.GetName().replace('_signal','')
+                if '_norm' in hist.GetName(): continue
+
+                newName = hist.GetName().replace('_QCD','')
                 newName = newName.replace('Lp_','')
                 newName = newName.replace('Yield_','')
 
@@ -32,8 +34,6 @@ def loopFile(tfile):
 
     tupleList = []
 
-    print selSigList
-
     for idx, hist in enumerate(selSigList):
 
         binName = selSigList[idx].GetName().replace('sel_','')
@@ -42,8 +42,11 @@ def loopFile(tfile):
 
         if hSelect.GetNbinsX() != 1:
             print "Histo has more than one bin!"
-            print "Skipping", hSelect.GetName()
-            continue
+            print "Going to rebin to 1 bin"
+            #print "Skipping", hSelect.GetName()
+            selSigList[idx].Rebin(selSigList[idx].GetNbinsX())
+            antiSigList[idx].Rebin(antiSigList[idx].GetNbinsX())
+            #continue
 
         hRatio = hSelect.Clone("Ratio")
         hRatio.Divide(hAnti)
@@ -102,9 +105,13 @@ if __name__ == "__main__":
     hist = plotList(pdict)
     hist.SetStats(0)
 
-    canv=TCanvas(hist.GetName(),hist.GetTitle(),800,600)
-    hist.Draw('e')
+    hname = outName.replace(".root","")
+    hist.SetName(hname)
+    hist.SetTitle(hname)
     hist.GetYaxis().SetTitle("F_{sel-to-anti} QCD")
+
+    canv=TCanvas(hist.GetName(),hist.GetTitle(),800,600)
+    hist.Draw('e1')
 
     answ = raw_input("Enter 'q' to exit: ")
 

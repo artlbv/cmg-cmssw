@@ -24,6 +24,8 @@ def loopFile(tfile):
                 newName = hist.GetName().replace('_signal','')
                 newName = newName.replace('Lp_','')
 
+                if 'NJ9' in newName: continue
+
                 if '_sel_' in hist.GetName():
                     selSigList.append(hist.Clone(newName))
                 elif '_anti_' in hist.GetName():
@@ -31,9 +33,10 @@ def loopFile(tfile):
 
     tupleList = []
 
-    for idx, hist in enumerate(selSigList):
+    for idx, hist in enumerate(antiSigList):
 
         binName = selSigList[idx].GetName().replace('sel_','')
+
         nSelect = selSigList[idx].Integral()
         nAnti = antiSigList[idx].Integral()
 
