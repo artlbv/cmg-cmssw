@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 if [[ "$1" == "SingleLepAFS" ]]; then
     shift # shift register
     T="/afs/cern.ch/work/k/kirschen/public/PlotExampleSamples/V3";
@@ -20,13 +21,15 @@ elif [[ "$HOSTNAME" == *"naf"* ]] ; then
     J=8;
 else
     echo "Didn't specify location!"
-    echo "Usage: ./make_cards.sh location analysis "
+    echo "Usage: ./susy-1lep/make_binned_plots.sh location analysis STValue"
+    echo "e.g. ./susy-1lep/make_binned_plots.sh SingleLepAFS 1l-makeBinnedPlots STInc
+"
     exit 0
 fi
 
 LUMI=3.0
 OUTDIR="susy_cards_1l_4fb_test"
-OPTIONS=" -P $T -j $J -l $LUMI -f --s2v --tree treeProducerSusySingleLepton --od $OUTDIR --asimov "
+OPTIONS=" -P $T -j $J -l $LUMI -f --s2v --tree treeProducerSusySingleLepton --print-dir $OUTDIR --noStackSig --showIndivSigShapes --legendWidth 0.3 --lspam \"PHYS14\" --print png"
 
 # Get current plotter dir
 #PLOTDIR="$CMSSW_BASE/src/CMGTools/TTHAnalysis/python/plotter/"
@@ -34,25 +37,16 @@ PLOTDIR=$(pwd -P)
 PLOTDIR=${PLOTDIR/plotter/plotterX}
 PLOTDIR=$(echo $PLOTDIR |  cut -d 'X' -f 1 )
 
+PLOTDEFINITION="1l_TopnessBasics.txt"
+
 # Append FriendTree dir
 OPTIONS=" $OPTIONS -F sf/t $FT/evVarFriend_{cname}.root "
 
-function makeCard_1l {
+function makeBinnedPlots_1l {
     local EXPR=$1; local BINS=$2; local SYSTS=$3; local OUT=$4; local GO=$5
 
-
     CutFlowCard="1l_CardsFullCutFlow.txt"
-
-    McaFile="mca-Phys14_1l_Cards.txt"
-    if [[ "$CutFlowCard" == "2l_CardsFullCutFlow.txt" ]]; then
-	FTDiLep="/afs/cern.ch/user/k/kirschen/private/SUSY_SingleLepton/temp_DELETEIMMEDIATELY/CMSSW_7_2_3/src/CMGTools/TTHAnalysis/macros/Phys14_Friend_DiLepImpr_NoAddMET_DiLepFlag"
-	echo "$GO"
-	GO=${GO/$FT/$FTDiLep}
-	echo "$GO"
-    fi
-    
-
-
+#    CutFlowCard="2l_CardsFullCutFlow.txt"
     EXTRALABEL=""
 
     # b-jet cuts
@@ -134,54 +128,21 @@ function makeCard_1l {
     echo $EXTRALABEL
 
     if [[ "$PRETEND" == "1" ]]; then
-        echo "making datacard $OUT from makeShapeCardsSusy.py $McaFile $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
+        echo "making plots using python $PLOTDIR/mcPlots.py $PLOTDIR/mca-Phys14_1l.txt $PLOTDIR/susy-1lep/$CutFlowCard $PLOTDIR/susy-1lep/$PLOTDEFINITION -o $OUTDIR/$OUT $GO --extraLabel \"$EXTRALABEL\";"
     else
-        echo "making datacard $OUT from makeShapeCardsSusy.py $McaFile $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
-        python $PLOTDIR/makeShapeCardsSusy.py $PLOTDIR/$McaFile $PLOTDIR/susy-1lep/$CutFlowCard "$EXPR" "$BINS" $SYSTS -o $OUT $GO --dummyYieldsForZeroBkg;
+        echo "python $PLOTDIR/mcPlots.py $PLOTDIR/mca-Phys14_1l.txt $PLOTDIR/susy-1lep/$CutFlowCard $PLOTDIR/susy-1lep/$PLOTDEFINITION -o $OUTDIR/$OUT $GO --extraLabel \"$EXTRALABEL\";"
+        python $PLOTDIR/mcPlots.py $PLOTDIR/mca-Phys14_1l.txt $PLOTDIR/susy-1lep/$CutFlowCard $PLOTDIR/susy-1lep/$PLOTDEFINITION -o $OUT $GO --extraLabel "$EXTRALABEL";
         echo "  -- done at $(date)";
     fi;
 }
 
-function combineCardsSmart {
-
-    DummyC=0
-    AllC=0
-    CMD=""
-    for C in $*; do
-        # missing datacards
-        test -f $C || continue;
-
-        if grep -q "DummyContent" $C; then
-            echo "empty bin ${C}" >&2
-            DummyC=$(($DummyC+1))
-            if grep -q "observation 0.0$" $C; then
-                echo "this is not the way it was intended..."
-            fi
-        fi
-
-        grep -q "observation 0.0$" $C && continue # skip empty bins
-#       grep -q "observation 0.01$" $C && grep -q "DummyContent" $C && continue #skip bins with only DummyContent as well
-        AllC=$((AllC+1))
-        CMD="${CMD} $(basename $C .card.txt)=$C ";
-    done
-    if [[ "$CMD" == "" ]]; then
-        echo "Not any card found in $*" 1>&2 ;
-    else
-	echo "combineCards.py $CMD" >&2
-        combineCards.py $CMD
-    fi
-    if [[ "$DummyC" != "0" ]]; then
-        echo "In total $DummyC out of $AllC are empty, but taken into account by adding DummyContent." >&2
-    fi
-    #echo "In total $DummyC out of $AllC are empty, but taken into account by adding DummyContent." >&2
-}
 
 if [[ "$1" == "--pretend" ]]; then
     PRETEND=1; shift;
     echo "# Pretending to run"
 fi;
 
-if [[ "$1" == "1l-makeCards" ]]; then
+if [[ "$1" == "1l-makeBinnedPlots" ]]; then
 
     SYSTS="syst/susyDummy.txt"
     CnC_expr="1" #not used as of now
@@ -189,74 +150,25 @@ if [[ "$1" == "1l-makeCards" ]]; then
 
     STValue="$2"
     echo "$STValue"
-    
+
     echo "Making individual datacards"
-#old approach
+    for ST in "$STValue"; do for nJ in 6Infj; do for nB in 1p; do for HT in HT1; do for RD in DPhi00 DPhi05 DPhi075 DPhi10; do
 #    for ST in "$STValue"; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1; do for RD in DPhi00 DPhi05 DPhi075 DPhi10; do
 #    for ST in ST0 ST1 ST2 ST3 ST4 STInc; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1; do for RD in DPhi00 DPhi05 DPhi075 DPhi10; do
 
 #for baseline analysis:
-    for ST in "$STValue"; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1 HT2; do for RD in Def; do
+#    for ST in "$STValue"; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1 HT2; do for RD in Def; do
 #    for ST in STDynDP0 STDynDP1 STDynDP2 STDynDP3 STDynDP4 STDynDP5; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1 HT2; do for RD in Def; do
 
 #for dphi>0.5, single topness, topness, and soft lepton analysis:
-#    for ST in "$STValue"; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 2Btop 3p; do for HT in HT0 HT1 HT2; do for RD in DPhi05 Stop LowLepPtStop; do
+#    for ST in "$STValue"; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1 HT2; do for RD in Def; do
 #    for ST in ST0 ST1 ST2 ST3 ST4 ST5; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 2Btop 3p; do for HT in HT0 HT1 HT2; do for RD in DPhi05 Stop LowLepPtStop; do
         echo " --- CnC2015X_${nB}_${ST}_${nJ}_${HT}_${RD} ---"
-        makeCard_1l $CnC_expr $CnC_bins $SYSTS CnC2015X_${nB}_${ST}_${nJ}_${HT}_${RD} "$OPTIONS";
-                done; done; done; done; done;
+        makeBinnedPlots_1l $CnC_expr $CnC_bins $SYSTS CnC2015X_${nB}_${ST}_${nJ}_${HT}_${RD} "$OPTIONS";
+		done; done; done; done; done;
 #    done;
     exit 0
-
 fi
 
-if [[ "$1" == "1l-combine" ]]; then
-
-    if [[ ! $CMSSW_VERSION == *"CMSSW_7_1_"* ]] ;then
-	echo "You don't have the correct CMSSW environment!"
-	echo "Found: $CMSSW_VERSION, need CMSSW_7_1_X"
-	exit 0
-    fi
-
-    echo "Making combined datacards"
-
-    if [[ "$PRETEND" == "1" ]]; then
-	echo "Pretending to do cards"
-	exit 0
-    fi
-
-    for D in $OUTDIR/T[0-9]*; do
-	echo "Making combined datacards2"
-        test -f $D/CnC2015X_2B_ST1_68j_HT1_DPhi05.card.txt || continue
-	echo "Making combined datacards3"
-        (cd $D && echo "    $D";
-            for nB in 1B 2B 3p; do
-                combineCardsSmart CnC2015X_${nB}_{STDynDP0,STDynDP1,STDynDP2,STDynDP3,STDynDP4,STDynDP5}_6Infj_{HT0,HT1,HT2}_Def.card.txt >  CnC2015X_${nB}_standardnJ.card.txt
-                combineCardsSmart CnC2015X_${nB}_{STDynDP0,STDynDP1,STDynDP2,STDynDP3,STDynDP4,STDynDP5}_{68j,9Infj}_{HT0,HT1,HT2}_Def.card.txt >  CnC2015X_${nB}_finenJ.card.txt
-
-            done
-            combineCardsSmart CnC2015X_{1B,2B,3p}_standardnJ.card.txt >  CnC2015X_standardnJ.card.txt # standard nJet-binning; HT-binning
-            combineCardsSmart CnC2015X_{1B,2B,3p}_finenJ.card.txt >  CnC2015X_finenJ.card.txt #fine nJet-binning; HT-binning
-
-            combineCardsSmart CnC2015X_{1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_DPhi05.card.txt >  CnC2015X_Dphi05.card.txt #fine nJet-binning; HT-binning; DPhi>0.5
-            combineCardsSmart CnC2015X_{1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_Stop.card.txt >  CnC2015X_STop.card.txt #fine nJet-binning; HT-binning; single topness only
-            combineCardsSmart CnC2015X_{1B,2Btop,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_Stop.card.txt >  CnC2015X_STop_Top2B.card.txt #fine nJet-binning; HT-binning; use topness for 2B
-            combineCardsSmart CnC2015X_{1B,2Btop,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_LowLepPtStop.card.txt >  CnC2015X_LowLepPtStop.card.txt #fine nJet-binning; HT-binning; use topness for 2B
-
-
-
-	    #merge everything to be able to parse easily the datacards
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi00.card.txt > CnC2015X_ForYieldComparisons_DPhi00.card.txt
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi05.card.txt > CnC2015X_ForYieldComparisons_DPhi05.card.txt
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi075.card.txt > CnC2015X_ForYieldComparisons_DPhi075.card.txt
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi10.card.txt > CnC2015X_ForYieldComparisons_DPhi10.card.txt
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{STDynDP0,STDynDP1,STDynDP2,STDynDP3,STDynDP4,STDynDP5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_Def.card.txt > CnC2015X_ForYieldComparisons_DynamicDPhi.card.txt
-
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_Stop.card.txt > CnC2015X_ForYieldComparisons_Stop.card.txt
-	    combineCardsSmart CnC2015X_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_Top.card.txt > CnC2015X_ForYieldComparisons_Top.card.txt
-
-        )
-    done
-fi
 
 echo "Done at $(date)";
