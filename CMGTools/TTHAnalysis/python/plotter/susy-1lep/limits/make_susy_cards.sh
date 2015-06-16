@@ -18,6 +18,11 @@ elif [[ "$HOSTNAME" == *"naf"* ]] ; then
     T="/nfs/dust/cms/group/susy-desy/Run2/MC/CMGtuples/Phys14_v3/ForCMGplot";
     FT="/nfs/dust/cms/group/susy-desy/Run2/MC/CMGtuples/Phys14_v3/Phys14_V3_Friend_CSVbtag"
     J=8;
+elif [[ "$1" == "QCDLp" ]] ; then
+    shift # shift register
+    T="/nfs/dust/cms/group/susy-desy/Run2/MC/CMGtuples/Phys14_v3/ForCMGplot";
+    FT="/nfs/dust/cms/user/lobanov/SUSY/Run2/RA4/MC/CMGtuples/FriendTrees/phys14_v3_Lp"
+    J=8;
 else
     echo "Didn't specify location!"
     echo "Usage: ./make_cards.sh location analysis "
@@ -25,7 +30,7 @@ else
 fi
 
 LUMI=4.0
-OUTDIR="susy_cards_1l_4fb_test"
+OUTDIR="yields/ele_anti"
 OPTIONS=" -P $T -j $J -l $LUMI -f --s2v --tree treeProducerSusySingleLepton --od $OUTDIR --asimov "
 
 # Get current plotter dir
@@ -40,7 +45,8 @@ OPTIONS=" $OPTIONS -F sf/t $FT/evVarFriend_{cname}.root "
 function makeCard_1l {
     local EXPR=$1; local BINS=$2; local SYSTS=$3; local OUT=$4; local GO=$5
 
-    CutFlowCard="1l_CardsFullCutFlow.txt"
+    #CutFlowCard="cards_cf_csv.txt"
+    CutFlowCard="cards_cf_selected.txt"
 
     # b-jet cuts
     case $nB in
@@ -87,7 +93,8 @@ function makeCard_1l {
         echo "making datacard $OUT from makeShapeCardsSusy.py mca-Phys14_1l.txt $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
     else
         echo "making datacard $OUT from makeShapeCardsSusy.py mca-Phys14_1l.txt $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
-        python $PLOTDIR/makeShapeCardsSusy.py $PLOTDIR/mca-Phys14_1l.txt $PLOTDIR/susy-1lep/$CutFlowCard "$EXPR" "$BINS" $SYSTS -o $OUT $GO --dummyYieldsForZeroBkg;
+        #python $PLOTDIR/makeShapeCardsSusy.py $PLOTDIR/mca-Phys14_1l.txt $PLOTDIR/susy-1lep/$CutFlowCard "$EXPR" "$BINS" $SYSTS -o $OUT $GO --dummyYieldsForZeroBkg;
+	python $PLOTDIR/makeShapeCardsSusy.py $PLOTDIR/mca-QCDonly.txt $PLOTDIR/susy-1lep/$CutFlowCard "$EXPR" "$BINS" $SYSTS -o $OUT $GO --dummyYieldsForZeroBkg;
         echo "  -- done at $(date)";
     fi;
 }
@@ -138,7 +145,8 @@ if [[ "$1" == "1l-makeCards" ]]; then
 
 
     echo "Making individual datacards"
-    for ST in ST0 ST1 ST2 ST3 ST4; do for nJ in 68j 6Infj 9Infj; do for nB in 2B 3B; do for HT in HT0 HT1; do
+#    for ST in ST0 ST1 ST2 ST3 ST4; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1B 2B 3B; do for HT in HT0 HT1; do
+    for ST in ST0 ST1 ST2 ST3 ST4; do for nJ in 45j; do for nB in 1B 2B 3B; do for HT in HT0 HT1; do
 #    for ST in ST0 ST1 ST2 ST3 ST4; do
         echo " --- CnC2015X_${nB}_${ST}_${nJ}_${HT} ---"
         makeCard_1l $CnC_expr $CnC_bins $SYSTS CnC2015X_${nB}_${ST}_${nJ}_${HT} "$OPTIONS";
@@ -166,13 +174,13 @@ if [[ "$1" == "1l-combine" ]]; then
     for D in $OUTDIR/T[0-9]*; do
         test -f $D/CnC2015X_2B_ST0_68j_HT0.card.txt || continue
         (cd $D && echo "    $D";
-            for nB in 2B 3B; do
+            for nB in 1B 2B 3B; do
                 combineCardsSmart CnC2015X_${nB}_{ST0,ST1,ST2,ST3,ST4}_6Infj_{HT0,HT1}.card.txt >  CnC2015X_${nB}_standardnJ.card.txt
                 combineCardsSmart CnC2015X_${nB}_{ST0,ST1,ST2,ST3,ST4}_{68j,9Infj}_{HT0,HT1}.card.txt >  CnC2015X_${nB}_finenJ.card.txt
 
             done
-            combineCardsSmart CnC2015X_{2B,3B}_standardnJ.card.txt >  CnC2015X_standardnJ.card.txt # standard nJet-binning; HT-binning
-            combineCardsSmart CnC2015X_{2B,3B}_finenJ.card.txt >  CnC2015X_finenJ.card.txt #fine nJet-binning; HT-binning
+            combineCardsSmart CnC2015X_{1B,2B,3B}_standardnJ.card.txt >  CnC2015X_standardnJ.card.txt # standard nJet-binning; HT-binning
+            combineCardsSmart CnC2015X_{1B,2B,3B}_finenJ.card.txt >  CnC2015X_finenJ.card.txt #fine nJet-binning; HT-binning
 
         )
     done
