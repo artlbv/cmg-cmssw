@@ -7,12 +7,42 @@ import PhysicsTools.Heppy.loadlibs
 import array
 import operator
 
-def getPhysObjectArray(j): # https://github.com/HephySusySW/Workspace/blob/72X-master/RA4Analysis/python/mt2w.py
-    px = j.pt*cos(j.phi )
-    py = j.pt*sin(j.phi )
-    pz = j.pt*sinh(j.eta )
-    E = sqrt(px*px+py*py+pz*pz) #assuming massless particles...
-    return array.array('d', [E, px, py,pz])
+# Cuts and WP
+
+# Tight MVA WP
+Ele_mvaPhys14_eta0p8_T = 0.73;
+Ele_mvaPhys14_eta1p4_T = 0.57;
+Ele_mvaPhys14_eta2p4_T = 0.05;
+
+# Medium MVA WP  <--- UPDATE
+Ele_mvaPhys14_eta0p8_M = 0.35;
+Ele_mvaPhys14_eta1p4_M = 0.20;
+Ele_mvaPhys14_eta2p4_M = -0.52;
+
+# Loose MVA WP
+Ele_mvaPhys14_eta0p8_L = 0.35;
+Ele_mvaPhys14_eta1p4_L = 0.20;
+Ele_mvaPhys14_eta2p4_L = -0.52;
+
+
+def checkEleMVA(lepMVA,lepEta,WP = 'Tight'):
+    # Eta dependent MVA ID check:
+    passID = False
+
+    if WP == 'Tight':
+        if lepEta < 0.8 and lepMVA > Ele_mvaPhys14_eta0p8_T: passID = True
+        elif lepEta >= 0.8 and lepEta < 1.44 and lepMVA > Ele_mvaPhys14_eta1p4_T: passID = True
+        elif lepEta >= 1.57 and lepEta < 2.4 and lepMVA > Ele_mvaPhys14_eta2p4_T: passID = True
+    elif WP == 'Medium':
+        if lepEta < 0.8 and lepMVA > Ele_mvaPhys14_eta0p8_M: passID = True
+        elif lepEta >= 0.8 and lepEta < 1.44 and lepMVA > Ele_mvaPhys14_eta1p4_M: passID = True
+        elif lepEta >= 1.57 and lepEta < 2.4 and lepMVA > Ele_mvaPhys14_eta2p4_M: passID = True
+    elif WP == 'Loose':
+        if lepEta < 0.8 and lepMVA > Ele_mvaPhys14_eta0p8_L: passID = True
+        elif lepEta >= 0.8 and lepEta < 1.44 and lepMVA > Ele_mvaPhys14_eta1p4_L: passID = True
+        elif lepEta >= 1.57 and lepEta < 2.4 and lepMVA > Ele_mvaPhys14_eta2p4_L: passID = True
+
+    return passID
 
 class EventVars1L_base:
     def __init__(self):
@@ -22,8 +52,8 @@ class EventVars1L_base:
             ("tightLeps_DescFlag","I",10,"nTightLeps"),
             ("nTightEl","I"),("tightElIdx","I",10,"nTightEl"),("nVetoEl","I"),("vetoElIdx","I",10,"nVetoEl"),
             ("nTightMu","I"),("tightMuIdx","I",10,"nTightMu"),("nVetoMu","I"),("vetoMuIdx","I",10,"nVetoMu"),
-            'LepGood1_pdgId','LepGood1_eta','LepGood1_phi','Lp',
-            "MET", "DeltaPhiLepW",
+            'LepGood1_pdgId','LepGood1_eta','LepGood1_phi','Selected',
+            'Lp', "MET", "DeltaPhiLepW",
             'HT','ST','LepGood1_pt',
             ("nCentralJet30","I"),("centralJet30idx","I",100,"nCentralJet30"),("centralJet30_DescFlag","F",100,"nCentralJet30"),
             ("nBJetMedium30","I"),("BJetMedium30idx","I",50,"nBJetMedium30"),
@@ -34,7 +64,6 @@ class EventVars1L_base:
 
     def listBranches(self):
         return self.branches[:]
-
 
     def __call__(self,event,keyvals):
 
@@ -55,18 +84,13 @@ class EventVars1L_base:
 
         # make python lists as Collection does not support indexing in slices
         genleps = [l for l in Collection(event,"genLep","ngenLep")]
-        genparts = [l for l in Collection(event,"GenPart","nGenPart")]
-
         leps = [l for l in Collection(event,"LepGood","nLepGood")]
+
         jets = [j for j in Collection(event,"Jet","nJet")]
-
         fatjets = [j for j in Collection(event,"FatJet","nFatJet")]
-
-        njet = len(jets); nlep = len(leps)
 
         metp4 = ROOT.TLorentzVector(0,0,0,0)
         metp4.SetPtEtaPhiM(event.met_pt,event.met_eta,event.met_phi,event.met_mass)
-        pmiss  =array.array('d',[event.met_pt * cos(event.met_phi), event.met_pt * sin(event.met_phi)] )
 
         #isolation criteria as defined for PHYS14 1l synchronisation exercise
         centralEta = 2.4
@@ -75,44 +99,44 @@ class EventVars1L_base:
         muo_minirelisoCut = 0.2
         Lep_minirelisoCut = 0.4
 
-        goodEl_lostHits = 0
-        goodEl_sip3d = 4
+        Ele_lostHits = 0
+        Ele_sip3d = 4
 
-        goodEl_mvaPhys14_eta0p8_T = 0.73;
-        goodEl_mvaPhys14_eta1p4_T = 0.57;
-        goodEl_mvaPhys14_eta2p4_T = 0.05;
+        Ele_mvaPhys14_eta0p8_T = 0.73;
+        Ele_mvaPhys14_eta1p4_T = 0.57;
+        Ele_mvaPhys14_eta2p4_T = 0.05;
 
         ### LEPTONS
 
-        hardTightLeps = []
-        hardTightLepsIdx = []
-        hardVetoLeps = []
-        hardVetoLepsIdx = []
+        selectedTightLeps = []
+        selectedTightLepsIdx = []
+        selectedVetoLeps = []
+        selectedVetoLepsIdx = []
 
-        softTightLeps = []
-        softTightLepsIdx = []
-        softVetoLeps = []
-        softVetoLepsIdx = []
+        antiTightLeps = []
+        antiTightLepsIdx = []
+        antiVetoLeps = []
+        antiVetoLepsIdx = []
 
-        hardTightMu = []
-        hardTightMuIdx = []
-        hardVetoMu = []
-        hardVetoMuIdx = []
+        selectedTightMu = []
+        selectedTightMuIdx = []
+        selectedVetoMu = []
+        selectedVetoMuIdx = []
 
-        softTightMu = []
-        softTightMuIdx = []
-        softVetoMu = []
-        softVetoMuIdx = []
+        antiTightMu = []
+        antiTightMuIdx = []
+        antiVetoMu = []
+        antiVetoMuIdx = []
 
-        hardTightEl = []
-        hardTightElIdx = []
-        hardVetoEl = []
-        hardVetoElIdx = []
+        selectedTightEl = []
+        selectedTightElIdx = []
+        selectedVetoEl = []
+        selectedVetoElIdx = []
 
-        softTightEl = []
-        softTightElIdx = []
-        softVetoEl = []
-        softVetoElIdx = []
+        antiTightEl = []
+        antiTightElIdx = []
+        antiVetoEl = []
+        antiVetoElIdx = []
 
         for idx,lep in enumerate(leps):
 
@@ -127,12 +151,12 @@ class EventVars1L_base:
                 passID = False
                 passIso = False
 
-                # hard: pt > 25
+                # selected: pt > 25
                 if lep.pt > 25:
 
-                    # all hard leptons are veto for soft
-                    softVetoLeps.append(lep); softVetoLepsIdx.append(idx);
-                    softVetoMu.append(lep); softVetoMuIdx.append(idx);
+                    # all selected leptons are veto for anti
+                    antiVetoLeps.append(lep); antiVetoLepsIdx.append(idx);
+                    antiVetoMu.append(lep); antiVetoMuIdx.append(idx);
 
                     # ID and Iso check:
                     if lep.mediumMuonId == 1 and lep.sip3d < 4.0: passID = True
@@ -140,19 +164,19 @@ class EventVars1L_base:
 
                     # fill
                     if passID and passIso:
-                        hardTightLeps.append(lep); hardTightLepsIdx.append(idx);
-                        hardTightMu.append(lep); hardTightMuIdx.append(idx);
+                        selectedTightLeps.append(lep); selectedTightLepsIdx.append(idx);
+                        selectedTightMu.append(lep); selectedTightMuIdx.append(idx);
                     else:
-                        hardVetoLeps.append(lep); hardVetoLepsIdx.append(idx);
-                        hardVetoMu.append(lep); hardVetoMuIdx.append(idx);
+                        selectedVetoLeps.append(lep); selectedVetoLepsIdx.append(idx);
+                        selectedVetoMu.append(lep); selectedVetoMuIdx.append(idx);
 
-                # soft muons + tight veto
+                # anti muons + tight veto
                 elif lep.pt > 5:
                     # veto for tight if pt > 10
                     if lep.pt > 10:
-                        hardVetoLeps.append(lep); hardVetoLepsIdx.append(idx);
-                        hardVetoMu.append(lep); hardVetoMuIdx.append(idx);
-                    # Soft leptons
+                        selectedVetoLeps.append(lep); selectedVetoLepsIdx.append(idx);
+                        selectedVetoMu.append(lep); selectedVetoMuIdx.append(idx);
+                    # Anti leptons
                     # ID check
                     if lep.mediumMuonId == 1 and lep.sip3d < 4.0: passID = True
                     # iso check
@@ -161,102 +185,112 @@ class EventVars1L_base:
 
                     # fill
                     if passID and passIso:
-                        softTightLeps.append(lep); softTightLepsIdx.append(idx);
-                        softTightMu.append(lep); softTightMuIdx.append(idx);
+                        antiTightLeps.append(lep); antiTightLepsIdx.append(idx);
+                        antiTightMu.append(lep); antiTightMuIdx.append(idx);
                     else:
-                        softVetoLeps.append(lep); softVetoLepsIdx.append(idx);
-                        softVetoMu.append(lep); softVetoMuIdx.append(idx);
+                        antiVetoLeps.append(lep); antiVetoLepsIdx.append(idx);
+                        antiVetoMu.append(lep); antiVetoMuIdx.append(idx);
 
             # electrons
             if(abs(lep.pdgId) == 11):
+
+                if lep.pt < 25: continue
+
                 # pass variables
-                passID = False
                 passIso = False
-                passEta = False
                 passConv = False
 
-                # hard: pt > 25
-                if lep.pt > 25:
+                lepMVA = lep.mvaIdPhys14
 
-                    # all hard leptons are veto for soft
-                    softVetoLeps.append(lep); softVetoLepsIdx.append(idx);
-                    softVetoEl.append(lep); softVetoElIdx.append(idx);
+                # check MVA WPs
+                passTightID = checkEleMVA(lepMVA,lepEta,'Tight')
+                passLooseID = checkEleMVA(lepMVA,lepEta,'Loose')
+
+                # selected
+                if passTightID:
+
+                    # all selected leptons are veto for anti
+                    antiVetoLeps.append(lep); antiVetoLepsIdx.append(idx);
+                    antiVetoEl.append(lep); antiVetoElIdx.append(idx);
 
                     # Iso check:
                     if lep.miniRelIso < ele_minirelisoCut: passIso = True
-                    # Eta dependent MVA ID check:
-                    if lepEta < 0.8 and lep.mvaIdPhys14 > goodEl_mvaPhys14_eta0p8_T: passID = True
-                    elif lepEta >= 0.8 and lepEta < 1.44 and lep.mvaIdPhys14 > goodEl_mvaPhys14_eta1p4_T: passID = True
-                    elif lepEta >= 1.57 and lepEta < 2.4 and lep.mvaIdPhys14 > goodEl_mvaPhys14_eta2p4_T: passID = True
                     # conversion check
-                    if lep.lostHits <= goodEl_lostHits and lep.convVeto and lep.sip3d < goodEl_sip3d: passConv = True
+                    if lep.lostHits <= Ele_lostHits and lep.convVeto and lep.sip3d < Ele_sip3d: passConv = True
 
                     # fill
-                    if passID and passIso and passConv:
-                        hardTightLeps.append(lep); hardTightLepsIdx.append(idx);
-                        hardTightEl.append(lep); hardTightElIdx.append(idx);
+                    if passIso and passConv:
+                        selectedTightLeps.append(lep); selectedTightLepsIdx.append(idx);
+                        selectedTightEl.append(lep); selectedTightElIdx.append(idx);
                     else:
-                        hardVetoLeps.append(lep); hardVetoLepsIdx.append(idx);
-                        hardVetoEl.append(lep); hardVetoElIdx.append(idx);
+                        selectedVetoLeps.append(lep); selectedVetoLepsIdx.append(idx);
+                        selectedVetoEl.append(lep); selectedVetoElIdx.append(idx);
 
-                # soft muons + tight veto
-                elif lep.pt > 5:
+                # anti-selected
+                elif passLooseID:
 
-                    # veto fro tight if pt > 10
-                    if lep.pt > 10:
-                        hardVetoLeps.append(lep); hardVetoLepsIdx.append(idx);
-                        hardVetoEl.append(lep); hardVetoElIdx.append(idx);
+                    # all anti leptons are veto for selected
+                    selectedVetoLeps.append(lep); selectedVetoLepsIdx.append(idx);
+                    selectedVetoEl.append(lep); selectedVetoElIdx.append(idx);
 
-                    # Soft leptons
-                    # check eta
-                    if (lepEta < 1.44 or lepEta >= 1.57) and lepEta < 2.4: passEta = True
-
-                    # MVA(ID+Iso) check
-                    if lep.mvaSusy > 0.53: passID = True
+                    # Iso check:
+                    if lep.miniRelIso < 0.4: passIso = True
                     # conversion check
-                    if lep.lostHits <= goodEl_lostHits and lep.convVeto and lep.sip3d < goodEl_sip3d: passConv = True
+                    passConv = True
 
                     # fill
-                    if passID and passEta and passConv:
-                        softTightLeps.append(lep); softTightLepsIdx.append(idx);
-                        softTightEl.append(lep); softTightElIdx.append(idx);
+                    if passIso and passConv:
+                        antiTightLeps.append(lep); antiTightLepsIdx.append(idx);
+                        antiTightEl.append(lep); antiTightElIdx.append(idx);
                     else:
-                        softVetoLeps.append(lep); softVetoLepsIdx.append(idx);
-                        softVetoEl.append(lep); softVetoElIdx.append(idx);
+                        antiVetoLeps.append(lep); antiVetoLepsIdx.append(idx);
+                        antiVetoEl.append(lep); antiVetoElIdx.append(idx);
+                else:
+                    # the rest is veto for selected and anti
+                    selectedVetoLeps.append(lep); selectedVetoLepsIdx.append(idx);
+                    selectedVetoEl.append(lep); selectedVetoElIdx.append(idx);
+
+                    antiVetoLeps.append(lep); antiVetoLepsIdx.append(idx);
+                    antiVetoEl.append(lep); antiVetoElIdx.append(idx);
         # end lepton loop
 
-        # choose common lepton collection: select hard or soft lepton
-        if len(hardTightLeps) > 0:
-            tightLeps = hardTightLeps
-            tightLepsIdx = hardTightLepsIdx
-            vetoLeps = hardVetoLeps
-            vetoLepsIdx = hardVetoLepsIdx
+        # choose common lepton collection: select selected or anti lepton
+        if len(selectedTightLeps) > 0:
+            tightLeps = selectedTightLeps
+            tightLepsIdx = selectedTightLepsIdx
+            vetoLeps = selectedVetoLeps
+            vetoLepsIdx = selectedVetoLepsIdx
 
-            tightEl = hardTightEl
-            tightElIdx = hardTightElIdx
-            vetoEl = hardVetoEl
-            vetoElIdx = hardVetoElIdx
+            tightEl = selectedTightEl
+            tightElIdx = selectedTightElIdx
+            vetoEl = selectedVetoEl
+            vetoElIdx = selectedVetoElIdx
 
-            tightMu = hardTightMu
-            tightMuIdx = hardTightMuIdx
-            vetoMu = hardVetoMu
-            vetoMuIdx = hardVetoMuIdx
+            tightMu = selectedTightMu
+            tightMuIdx = selectedTightMuIdx
+            vetoMu = selectedVetoMu
+            vetoMuIdx = selectedVetoMuIdx
 
-        else: #if len(softTightLeps) > 0: or empty collection
-            tightLeps = softTightLeps
-            tightLepsIdx = softTightLepsIdx
-            vetoLeps = softVetoLeps
-            vetoLepsIdx = softVetoLepsIdx
+            ret['Selected'] = 1
 
-            tightEl = softTightEl
-            tightElIdx = softTightElIdx
-            vetoEl = softVetoEl
-            vetoElIdx = softVetoElIdx
+        else: #if len(antiTightLeps) > 0: or empty collection
+            tightLeps = antiTightLeps
+            tightLepsIdx = antiTightLepsIdx
+            vetoLeps = antiVetoLeps
+            vetoLepsIdx = antiVetoLepsIdx
 
-            tightMu = softTightMu
-            tightMuIdx = softTightMuIdx
-            vetoMu = softVetoMu
-            vetoMuIdx = softVetoMuIdx
+            tightEl = antiTightEl
+            tightElIdx = antiTightElIdx
+            vetoEl = antiVetoEl
+            vetoElIdx = antiVetoElIdx
+
+            tightMu = antiTightMu
+            tightMuIdx = antiTightMuIdx
+            vetoMu = antiVetoMu
+            vetoMuIdx = antiVetoMuIdx
+
+            if len(antiTightLeps) > 0:
+                ret['Selected'] = -1
 
         #ret = { 'nTightLeps'   : len(tightLeps) }
         ret['nTightLeps'] = len(tightLeps)
@@ -353,29 +387,18 @@ class EventVars1L_base:
             if abs(l.mcMatchId)==6: tightLeps_DescFlag.append(1)    #top
             elif abs(l.mcMatchId)==24: tightLeps_DescFlag.append(2) #W-boson
             else: tightLeps_DescFlag.append(0)
-            
-        topDecayMode = -999 #0: hadronic; 1: leptonic
-        antiTopDecayMode = -999 #0: hadronic; 1: leptonic
-        for g in genparts:
-            if g.grandmotherId == 6 and abs(g.pdgId)>10 and abs(g.pdgId)<17: topDecayMode=1
-            elif g.grandmotherId == 6 and abs(g.pdgId)<6: topDecayMode=0
-            elif g.grandmotherId == -6 and abs(g.pdgId)>10 and abs(g.pdgId)<17: antiTopDecayMode=1
-            elif g.grandmotherId == -6 and abs(g.pdgId)<6: antiTopDecayMode=0
-            elif abs(g.grandmotherId) == 6 and not g.pdgId==22: print "SOMETHING GOING WRONG!!! W-boson should decay to either quarks or leptons (or radiate photons); g.pdgId", g.pdgId
 
         for i,j in enumerate(centralJet30):
             if abs(j.mcMatchId)==6:
-                if abs(j.mcFlavour)==5:
-                    if j.mcMatchId==6 and topDecayMode==1:
-                        centralJet30_DescFlag.append(1) # leptonic decay, positively charged W
-                    elif j.mcMatchId==-6 and antiTopDecayMode==1:
-                        centralJet30_DescFlag.append(-1) # leptonic decay, negatively charged W
+                if len(genleps)>0 and abs(genleps[0].sourceId) ==6 and abs(j.mcFlavour)==5:
+                    if j.mcMatchId==genleps[0].sourceId:
+                        centralJet30_DescFlag.append(genleps[0].charge)
                     else:
-                        centralJet30_DescFlag.append(2) # hadronic decay
-                elif abs(j.mcFlavour) not in [0,5,21]:
-                    centralJet30_DescFlag.append(3)
-                else: centralJet30_DescFlag.append(-999) #; print "should not happen..."
-            else: centralJet30_DescFlag.append(0)
+                        centralJet30_DescFlag.append(2)
+            elif abs(j.mcFlavour) not in [0,5,21]:
+                centralJet30_DescFlag.append(3)
+            else: centralJet30_DescFlag.append(-999) #; print "should not happen..."
+        else: centralJet30_DescFlag.append(0)
 
         ret["centralJet30_DescFlag"]=centralJet30_DescFlag
         ret["tightLeps_DescFlag"]=tightLeps_DescFlag
