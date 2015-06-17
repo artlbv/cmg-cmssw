@@ -124,6 +124,7 @@ pdfwAna = cfg.Analyzer(
 from CMGTools.TTHAnalysis.analyzers.susyParameterScanAnalyzer import susyParameterScanAnalyzer
 susyScanAna = cfg.Analyzer(
     susyParameterScanAnalyzer, name="susyParameterScanAnalyzer",
+    doLHE=True,
     )
 
 # Lepton Analyzer (generic)
@@ -277,6 +278,7 @@ jetAna = cfg.Analyzer(
     shiftJEC = 0, # set to +1 or -1 to get +/-1 sigma shifts
     smearJets = False,
     shiftJER = 0, # set to +1 or -1 to get +/-1 sigma shifts  
+    alwaysCleanPhotons = False,
     cleanJetsFromFirstPhoton = False,
     cleanJetsFromTaus = False,
     cleanJetsFromIsoTracks = False,
@@ -326,6 +328,7 @@ metAna = cfg.Analyzer(
     doTkMet = False,
     doMetNoPU = True,
     doMetNoMu = False,
+    doMetNoEle = False,
     doMetNoPhoton = False,
     recalibrate = False,
     jetAnalyzerCalibrationPostFix = "",
@@ -341,28 +344,28 @@ ttHCoreEventAna = cfg.Analyzer(
     ttHCoreEventAnalyzer, name='ttHCoreEventAnalyzer',
     maxLeps = 4, ## leptons to consider
     mhtForBiasedDPhi = "mhtJet40jvec",
-    jetForBiasedDPhi = "cleanJets",
+    jetForBiasedDPhi = "cleanJets"
     )
 
-## Jet-MET based Skim (generic, but requirements depend on the final state)
-# from CMGTools.TTHAnalysis.analyzers.ttHJetMETSkimmer import ttHJetMETSkimmer
-# ttHJetMETSkim = cfg.Analyzer(
-#    ttHJetMETSkimmer, name='ttHJetMETSkimmer',
-#    jets      = "cleanJets", # jet collection to use
-#    jetPtCuts = [],  # e.g. [60,40,30,20] to require at least four jets with pt > 60,40,30,20
-#    jetVetoPt =  0,  # if non-zero, veto additional jets with pt > veto beyond the ones in jetPtCuts
-#    metCut    =  0,  # MET cut
-#    htCut     = ('htJet40j', 0), # cut on HT defined with only jets and pt cut 40, at zero; i.e. no cut
-#                                 # see ttHCoreEventAnalyzer for alternative definitions
-#    mhtCut    = ('mhtJet40', 0), # cut on MHT defined with all leptons, and jets with pt > 40.
-#    nBJet     = ('CSVv2IVFM', 0, "jet.pt() > 30"),     # require at least 0 jets passing CSV medium and pt > 30
-#    )
+# Jet-MET based Skim (generic, but requirements depend on the final state)
+from CMGTools.TTHAnalysis.analyzers.ttHJetMETSkimmer import ttHJetMETSkimmer
+ttHJetMETSkim = cfg.Analyzer(
+   ttHJetMETSkimmer, name='ttHJetMETSkimmer',
+   jets      = "cleanJets", # jet collection to use
+   jetPtCuts = [],  # e.g. [60,40,30,20] to require at least four jets with pt > 60,40,30,20
+   jetVetoPt =  0,  # if non-zero, veto additional jets with pt > veto beyond the ones in jetPtCuts
+   metCut    =  0,  # MET cut
+   htCut     = ('htJet40j', 0), # cut on HT defined with only jets and pt cut 40, at zero; i.e. no cut
+                                # see ttHCoreEventAnalyzer for alternative definitions
+   mhtCut    = ('mhtJet40', 0), # cut on MHT defined with all leptons, and jets with pt > 40.
+   nBJet     = ('CSVv2IVFM', 0, "jet.pt() > 30"),     # require at least 0 jets passing CSV medium and pt > 30
+   )
 
 
 # Core sequence of all common modules
 susyCoreSequence = [
     skimAnalyzer,
-   #eventSelector,
+    #eventSelector,
     jsonAna,
     triggerAna,
     pileUpAna,
@@ -383,7 +386,7 @@ susyCoreSequence = [
     #ttHSVAna, # out of core sequence for now
     metAna,
     ttHCoreEventAna,
-    #ttHJetMETSkim
+    #ttHJetMETSkim,
     triggerFlagsAna,
     eventFlagsAna,
 ]
