@@ -29,10 +29,14 @@ def cleanJetsAndLeptons(jets,leptons,deltaR,arbitration):
         for i,j in enumerate(jets):
             d2i = deltaR2(l.eta(),l.phi(), j.eta(),j.phi())
             if d2i < dr2:
-                if arbitration(j,l) == j:
+                choice = arbitration(j,l)
+                if choice == j:
                    # if the two match, and we prefer the jet, then drop the lepton and be done
                    goodlep[il] = False
                    break 
+                elif choice == (j,l) or choice == (l,j):
+                   # asked to keep both, so we don't consider this match
+                   continue
             if d2i < d2m:
                 ibest, d2m = i, d2i
         # this lepton has been killed by a jet, then we clean the jet that best matches it
@@ -137,7 +141,10 @@ class JetAnalyzer( Analyzer ):
             leptons = leptons[:] + event.selectedTaus
         if self.cfg_ana.cleanJetsFromIsoTracks and hasattr(event, 'selectedIsoCleanTrack'):
             leptons = leptons[:] + event.selectedIsoCleanTrack
-        self.cleanJetsAll, cleanLeptons = cleanJetsAndLeptons(self.jets, leptons, self.jetLepDR, self.jetLepArbitration)
+
+        jetsEtaCut = [j for j in self.jets if abs(j.eta()) <  self.cfg_ana.jetEta ]
+        self.cleanJetsAll, cleanLeptons = cleanJetsAndLeptons(jetsEtaCut, leptons, self.jetLepDR, self.jetLepArbitration)
+        #self.cleanJetsAll, cleanLeptons = cleanJetsAndLeptons(self.jets, leptons, self.jetLepDR, self.jetLepArbitration) ##from central
         self.cleanJets    = [j for j in self.cleanJetsAll if abs(j.eta()) <  self.cfg_ana.jetEtaCentral ]
         self.cleanJetsFwd = [j for j in self.cleanJetsAll if abs(j.eta()) >= self.cfg_ana.jetEtaCentral ]
         self.discardedJets = [j for j in self.jets if j not in self.cleanJetsAll]
@@ -158,6 +165,10 @@ class JetAnalyzer( Analyzer ):
         self.gamma_cleanJetsFwd = [j for j in self.gamma_cleanJetsAll if abs(j.eta()) >= self.cfg_ana.jetEtaCentral ]
         ###
 
+        if self.cfg_ana.alwaysCleanPhotons:
+            self.cleanJets = self.gamma_cleanJets
+            self.cleanJetsAll = self.gamma_cleanJetsAll
+            self.cleanJetsFwd = self.gamma_cleanJetsFwd
 
         ## Associate jets to leptons
         leptons = event.inclusiveLeptons if hasattr(event, 'inclusiveLeptons') else event.selectedLeptons
@@ -233,10 +244,8 @@ class JetAnalyzer( Analyzer ):
     def testJetID(self, jet):
         jet.puJetIdPassed = jet.puJetId() 
         jet.pfJetIdPassed = jet.jetID('POG_PFID_Loose') 
-        if self.cfg_ana.relaxJetId:
-            return True
-        else:
-            return jet.pfJetIdPassed and (jet.puJetIdPassed or not(self.doPuId)) 
+        return ((jet.pfJetIdPassed or self.cfg_ana.relaxJetId) and
+                (jet.puJetIdPassed or not self.doPuId)) 
         
     def testJetNoID( self, jet ):
         # 2 is loose pile-up jet id
@@ -410,6 +419,7 @@ setattr(JetAnalyzer,"defaultConfig", cfg.Analyzer(
     cleanJetsFromFirstPhoton = False,
     cleanJetsFromTaus = False,
     cleanJetsFromIsoTracks = False,
+    alwaysCleanPhotons = False,
     jecPath = "",
     cleanGenJetsFromPhoton = False,
     collectionPostFix = ""

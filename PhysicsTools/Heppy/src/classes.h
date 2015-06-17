@@ -20,6 +20,7 @@
 //#include "EgammaAnalysis/ElectronTools/interface/ElectronEnergyCalibrator.h"
 # include "PhysicsTools/Heppy/interface/asa047.h"
 # include "PhysicsTools/Heppy/interface/topness.h"
+#include "PhysicsTools/Heppy/interface/PdfWeightProducerTool.h"
 
 #include <vector>
 namespace {
@@ -27,6 +28,7 @@ namespace {
     heppy::BTagSF  bTagSF_; 
     heppy::RochCor rc_;
     heppy::RochCor2012 rc2012_;
+    heppy::PdfWeightProducerTool  pdfw_; 
     heppy::FSRWeightAlgo walgo_;
     heppy::TriggerBitChecker checker;
     heppy::CMGMuonCleanerBySegmentsAlgo cmgMuonCleanerBySegmentsAlgo;

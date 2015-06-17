@@ -20,17 +20,17 @@ import ROOT
 
 import os
 
-class monoXRazorAnalyzer( Analyzer ):
+class RazorAnalyzer( Analyzer ):
     def __init__(self, cfg_ana, cfg_comp, looperName ):
-        super(monoXRazorAnalyzer,self).__init__(cfg_ana,cfg_comp,looperName) 
+        super(RazorAnalyzer,self).__init__(cfg_ana,cfg_comp,looperName) 
 
     def declareHandles(self):
-        super(monoXRazorAnalyzer, self).declareHandles()
+        super(RazorAnalyzer, self).declareHandles()
        #genJets                                                                                                                                                                     
         self.handles['genJets'] = AutoHandle( 'slimmedGenJets','std::vector<reco::GenJet>')
 
     def beginLoop(self, setup):
-        super(monoXRazorAnalyzer,self).beginLoop(setup)
+        super(RazorAnalyzer,self).beginLoop(setup)
         self.counters.addCounter('pairs')
         count = self.counters.counter('pairs')
         count.register('all events')
