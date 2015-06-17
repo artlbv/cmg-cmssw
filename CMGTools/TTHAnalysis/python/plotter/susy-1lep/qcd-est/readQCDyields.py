@@ -5,6 +5,8 @@ import subprocess
 import os
 import glob
 from multiprocessing import Pool
+from ROOT import *
+
 
 def readRatios(fname = "f_ratios_NJ34_Nb0.txt"):
 
@@ -33,7 +35,55 @@ def applyRatio(binname, nAnti):
 
     return (nPred, nPredErr)
 
-def _getYields(inargs):
+def _getYieldsFromInput(inargs):
+
+    (sample, cardDir, binName, ratDict) = inargs
+
+    if len(inargs) < 1:
+        return (binName,[0,0])
+
+    cardName = cardDir+"/common/QCDyield_"+binName+".input.root"
+
+    #print "# Starting Bin:", binName
+
+    cardf = TFile(cardName,"READ")
+
+    # get anti-selected histo
+    hAnti = cardf.Get("x_QCDanti")
+    nAnti = hAnti.Integral()
+    nAntiErr = hAnti.GetBinError(1)
+
+    # get selected histo
+    hSel = cardf.Get("x_QCDsel")
+    nSel = hSel.Integral()
+    nSelErr = hSel.GetBinError(1)
+
+    nPred = 0
+    nPredErr = 0
+
+    # Apply f-ratios for prediction
+    if ratDict != {}:
+        # filter STX from binname
+        stbin = binName[binName.find('ST'):binName.find('ST')+3]
+
+        #print 'Going to apply ratios in ST bin:', stbin
+
+        fRatio = ratDict[stbin][0]
+        fRatioErr = ratDict[stbin][1]
+
+        nPred = nAnti * fRatio
+
+        nPredErr = nPred * sqrt(nAntiErr/nAnti*nAntiErr/nAnti +  fRatioErr/fRatio*fRatioErr/fRatio)
+        #fRatio*sqrt(nQCDselErr/nQCDsel*nQCDselErr/nQCDsel + nAntiErr/nAnti*nAntiErr/nAnti)
+
+        #print nAnti, fRatio, nPred , nSel
+
+        return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
+    else:
+        print 'No ratios given'
+        return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
+
+def _getYieldsFromCard(inargs):
 
     (sample, cardDir, binName, ratDict) = inargs
 
@@ -99,18 +149,7 @@ if __name__ == "__main__":
     cardDirectory="yields/QCD_yields_3fb_testFull"
     cardDirectory = os.path.abspath(cardDirectory)
 
-    '''
-    limitDir = cardDirectory+"/limits_test/"
-    if not os.path.isdir(limitDir):
-    print 'Creating limit dir', limitDir
-    os.mkdir(limitDir)
-
-    print 'Entering out dir', limitDir
-    os.chdir(limitDir)
-    print
-    '''
-
-    QCDdir = 'QCDsel'
+    QCDdir = 'common'
     cardPattern = 'QCDyield'
 
     limitdict = {}
@@ -122,11 +161,11 @@ if __name__ == "__main__":
 
     # get card file list
     inDir = cardDirectory+'/'+QCDdir
-    cardFnames = glob.glob(inDir+'/'+ cardPattern + '_*.txt')
+    cardFnames = glob.glob(inDir+'/'+ cardPattern + '_*.root')
     cardNames = [os.path.basename(name) for name in cardFnames]
-    cardNames = [(name.replace(cardPattern+'_','')).replace('.card.txt','') for name in cardNames]
+    cardNames = [(name.replace(cardPattern+'_','')).replace('.input.root','') for name in cardNames]
 
-    #print 'Card list', cardNames
+    print 'Card list', cardNames
     argTuple = [(QCDdir, cardDirectory,name, ratDict) for name in cardNames]
     #print 'Card list', argTuple
 
@@ -134,23 +173,24 @@ if __name__ == "__main__":
 
     # single jobs
     #for args in argTuple:
-    #    (val,err) = _getYields(args)
+    #    _getYieldsFromInput(args)
     #    yieldDict[args[0]] = (val,err)
 
     # multi thread
     pool = Pool(nJobs)
-    yieldDict = dict(pool.map(_getYields, argTuple))
+    yieldDict = dict(pool.map(_getYieldsFromInput, argTuple))
 
     #print yieldDict
 
     # Print yields
-    print "Bin:\t\tNanti\t\tNpredict\tNselect\t\tDifference(%)"
+    print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\tDifference(%)"
 
     for bin in yieldDict:
 
-        (nAnti, nSel, nPred) = yieldDict[bin]
+        (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
+        #(nAnti, nSel, nPred) = yieldDict[bin]
         #print "%s:\t%f\t%f\t%f" % ( bin, yieldDict[bin][0], yieldDict[bin][1], yieldDict[bin][2])
-        print "%s:\t%f\t%f\t%f\t%f" % ( bin, nAnti, nPred, nSel, abs(nSel-nPred)/(nPred+0.00001)*100)
+        print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, abs(nSel-nPred)/(nPred+0.00001)*100)
 
     '''
     #    limDict  = dict(pool.map(_, jobs)) if options.jobs > 0 else dict([_runIt(j) for j in jobs])
