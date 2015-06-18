@@ -3,6 +3,7 @@
 import shutil
 import subprocess
 import os
+import sys
 import glob
 from multiprocessing import Pool
 from ROOT import *
@@ -80,16 +81,101 @@ def _getYieldsFromInput(inargs):
         #print 'No ratios given'
         return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
 
+def makeTable(yieldDict, format = "text"):
+
+    # sort by bin name
+    ykeys = sorted(yieldDict.keys())
+    #print 'KEYS', sorted(ykeys)
+
+    if format == "text":
+
+        # Print yields
+        print 80*'#'
+        print "Yields with zero selected"
+        print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\t\t\tDifference(%)"
+
+        for bin in ykeys:#yieldDict:
+
+            (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
+
+            if nSel != 0:
+                diff = abs(nSel-nPred)/(nSel)*100
+            else:
+                diff = 0
+
+            if diff == 0:
+                print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, diff)
+
+        print 80*'#'
+        print "Yields with non-zero selected"
+        print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\t\t\tDifference(%)"
+        for bin in ykeys:#yieldDict:
+
+            (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
+
+            if nSel != 0:
+                diff = abs(nSel-nPred)/(nSel)*100
+            else:
+                diff = 0
+
+            if diff != 0:
+                print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, diff)
+
+    elif format == "latex":
+
+        for htbin in ['HT0','HT1','HT2']:
+            # filter keys
+            ykHT = [key for key in ykeys if htbin in key]
+
+            print '%', 10*'-', htbin, 10*'-'
+
+            for njbin in ['45j', '68j']:
+                ykNJ = [key for key in ykHT if njbin in key]
+
+                print '%', 10*'-', njbin, 10*'-'
+
+                for stbin in ['ST1','ST2','ST3','ST4']:
+                    ykST = [key for key in ykNJ if stbin in key]
+
+                    print '%', stbin, ' & ',
+
+                    for nbbin in ['1B','2B','3p']:
+                        ykNB = [key for key in ykST if nbbin in key]
+                        for bin in ykNB:
+                            (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
+
+
+                            print "%5.1f\pm%5.1f & %5.1f\pm%5.1f" % ( nPred, nPredErr, nSel, nSelErr),
+                    print " \\\\"
+    else:
+        print 'Unknown print format!'
+
+    return 1
+
 # MAIN
 if __name__ == "__main__":
 
     nJobs = 12
 
+    # read f-ratios
     ratDict = {}
     ratDict = readRatios()
 
-    cardDirectory="yields/QCD_yields_3fb_AllBins"
+    if len(sys.argv) > 1:
+        cardDirectory = sys.argv[1]
+    else:
+        cardDirectory="yields/QCD_yields_3fb_test3"
+
+    if len(sys.argv) > 2:
+        pfmt = sys.argv[2]
+    else:
+        pfmt = "text"
+
+
     cardDirectory = os.path.abspath(cardDirectory)
+    cardDirName = os.path.basename(cardDirectory)
+
+    print 'Using cards from', cardDirName
 
     QCDdir = 'common'
     cardPattern = 'QCDyield'
@@ -122,38 +208,5 @@ if __name__ == "__main__":
     pool = Pool(nJobs)
     yieldDict = dict(pool.map(_getYieldsFromInput, argTuple))
 
-    ykeys = sorted(yieldDict.keys())
-
-    #print 'KEYS', sorted(ykeys)
-
-    # Print yields
-    print 80*'#'
-    print "Yields with zero difference"
-    print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\t\t\tDifference(%)"
-
-    for bin in ykeys:#yieldDict:
-
-        (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
-
-        if nSel != 0:
-            diff = abs(nSel-nPred)/(nSel)*100
-        else:
-            diff = 0
-
-        if diff == 0:
-            print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, diff)
-
-    print 80*'#'
-    print "Yields with non-zero difference"
-    print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\t\t\tDifference(%)"
-    for bin in ykeys:#yieldDict:
-
-        (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
-
-        if nSel != 0:
-            diff = abs(nSel-nPred)/(nSel)*100
-        else:
-            diff = 0
-
-        if diff != 0:
-            print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, diff)
+    # Output yields
+    makeTable(yieldDict,pfmt)
