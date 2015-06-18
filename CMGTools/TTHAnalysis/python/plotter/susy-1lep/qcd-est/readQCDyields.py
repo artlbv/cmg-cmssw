@@ -73,69 +73,12 @@ def _getYieldsFromInput(inargs):
         nPred = nAnti * fRatio
 
         nPredErr = nPred * sqrt(nAntiErr/nAnti*nAntiErr/nAnti +  fRatioErr/fRatio*fRatioErr/fRatio)
-        #fRatio*sqrt(nQCDselErr/nQCDsel*nQCDselErr/nQCDsel + nAntiErr/nAnti*nAntiErr/nAnti)
-
         #print nAnti, fRatio, nPred , nSel
 
         return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
     else:
         #print 'No ratios given'
         return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
-
-def _getYieldsFromCard(inargs):
-
-    (sample, cardDir, binName, ratDict) = inargs
-
-    if len(inargs) < 1:
-        return (binName,[0,0])
-
-    limfName = "Limits_"+sample+"_"+binName
-    signfName = "Significance_"+sample+"_"+binName
-    cardName = cardDir+"/"+sample+"/QCDyield_"+binName+".card.txt"
-
-    #print "# Starting Bin:", binName
-
-    cardf = open(cardName)
-
-    hasSelected = False
-    nSel = 0
-    nAnti = 0
-
-    for line in cardf.readlines():
-
-        if 'process' in line and 'QCDsel' in line:
-            #if 'sel' in line:
-            hasSelected = True
-
-        if 'rate' in line:
-            # get yields
-            if hasSelected:
-                (text,nAnti,nSel) = line.split()
-            else:
-                (text,nAnti) = line.split()
-
-    #print 'Yields:', nAnti, nSel
-    nAnti = float(nAnti)
-    nSel = float(nSel)
-
-    # Apply f-ratios for prediction
-    if ratDict != {}:
-        # filter STX from binname
-        stbin = binName[binName.find('ST'):binName.find('ST')+3]
-
-        #print 'Going to apply ratios in ST bin:', stbin
-
-        fRatio = ratDict[stbin][0]
-        nPred = nAnti * ratDict[stbin][0]
-
-        #print nAnti, fRatio, nPred , nSel
-
-
-        return (binName,[nAnti,nSel,nPred])
-    else:
-        print 'No ratios given'
-        return (binName,[nAnti,nSel,0])
-
 
 # MAIN
 if __name__ == "__main__":
