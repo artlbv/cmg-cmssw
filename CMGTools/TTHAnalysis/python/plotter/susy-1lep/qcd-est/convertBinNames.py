@@ -11,10 +11,10 @@ import glob
 nameDict = {}
 
 # ST bin names
-nameDict['ST0'] = "$[200,250$]"
-nameDict['ST1'] = "$[250,350$]"
-nameDict['ST2'] = "$[350,450$]"
-nameDict['ST3'] = "$[450,600$]"
+nameDict['ST0'] = "$[200,250]$"
+nameDict['ST1'] = "$[250,350]$"
+nameDict['ST2'] = "$[350,450]$"
+nameDict['ST3'] = "$[450,600]$"
 nameDict['ST4'] = "$>$600"
 
 # HT bin names
