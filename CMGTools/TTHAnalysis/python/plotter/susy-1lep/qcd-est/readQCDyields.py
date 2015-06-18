@@ -123,21 +123,48 @@ def makeTable(yieldDict, format = "text"):
 
     elif format == "latex":
 
+        print 80*'#'
+        print 'Going to print out LaTeX tables'
+        print 80*'#'
+
+        nColumns = 7
+
+        begtab = "\\begin{table}[!hbtp]\n\\begin{center}"
+        endtab = "\\end{center}\n\\label{tab:qcdYieldsHTbin}\n\\end{table}"
+
+        header = "\\begin{tabular}{|"+nColumns*'c|'+"}"
+        hline = "\\hline"
+        #header = "\\begin{tabular}{|c||c|c||c|c||c|c|}"
+        footer = "\end{tabular}"
+
+        caption = "\\caption{HTbin}"
+        njheader = "\multicolumn{7}{|c|}{NJ}\\\\ "+hline
+        nbheader = " & \multicolumn{2}{|c|}{\\nbtag = 1} & \multicolumn{2}{|c|}{\\nbtag = 2} & \multicolumn{2}{|c|}{\\nbtag $\\geq$ 3}\\\\ "+hline
+        binheader = "\\ST & Predicted & $N_\\textrm{QCD}^\\textrm{selected}$ & Predicted & $N_\\textrm{QCD}^\\textrm{selected}$ & Predicted & $N_\\textrm{QCD}^\\textrm{selected}$ \\\\ "+hline
+
         for htbin in ['HT0','HT1','HT2']:
-            # filter keys
-            ykHT = [key for key in ykeys if htbin in key]
 
             print '%', 10*'-', htbin, 10*'-'
+
+            print begtab
+            print caption.replace('HTbin',htbin)
+            print header
+            print hline, hline
+            # filter keys
+            ykHT = [key for key in ykeys if htbin in key]
 
             for njbin in ['45j', '68j']:
                 ykNJ = [key for key in ykHT if njbin in key]
 
                 print '%', 10*'-', njbin, 10*'-'
+                print njheader.replace('NJ',njbin)
+                print nbheader
+                print binheader
 
                 for stbin in ['ST1','ST2','ST3','ST4']:
                     ykST = [key for key in ykNJ if stbin in key]
 
-                    print '%', stbin, ' & ',
+                    print stbin,
 
                     for nbbin in ['1B','2B','3p']:
                         ykNB = [key for key in ykST if nbbin in key]
@@ -145,8 +172,12 @@ def makeTable(yieldDict, format = "text"):
                             (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
 
 
-                            print "%5.1f\pm%5.1f & %5.1f\pm%5.1f" % ( nPred, nPredErr, nSel, nSelErr),
+                            print "& %5.1f$\pm$%5.1f & %5.1f$\pm$%5.1f" % ( nPred, nPredErr, nSel, nSelErr),
                     print " \\\\"
+                print hline
+            print footer
+            print endtab.replace('HTbin',htbin)
+            print '\n\n'
     else:
         print 'Unknown print format!'
 
