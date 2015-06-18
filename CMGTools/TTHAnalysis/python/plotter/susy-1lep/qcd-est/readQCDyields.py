@@ -7,7 +7,6 @@ import glob
 from multiprocessing import Pool
 from ROOT import *
 
-
 def readRatios(fname = "f_ratios_NJ34_Nb0.txt"):
 
     ratioDict = {}
@@ -62,7 +61,7 @@ def _getYieldsFromInput(inargs):
     nPredErr = 0
 
     # Apply f-ratios for prediction
-    if ratDict != {}:
+    if ratDict != {} and nAnti != 0:
         # filter STX from binname
         stbin = binName[binName.find('ST'):binName.find('ST')+3]
 
@@ -80,7 +79,7 @@ def _getYieldsFromInput(inargs):
 
         return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
     else:
-        print 'No ratios given'
+        #print 'No ratios given'
         return (binName,[nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr])
 
 def _getYieldsFromCard(inargs):
@@ -146,7 +145,7 @@ if __name__ == "__main__":
     ratDict = {}
     ratDict = readRatios()
 
-    cardDirectory="yields/QCD_yields_3fb_testFull"
+    cardDirectory="yields/QCD_yields_3fb_AllBins"
     cardDirectory = os.path.abspath(cardDirectory)
 
     QCDdir = 'common'
@@ -156,8 +155,8 @@ if __name__ == "__main__":
     sigdict = {}
 
 
-    print 80*'#'
-    print "Yields for", QCDdir
+    #print 80*'#'
+    #print "Yields for", QCDdir
 
     # get card file list
     inDir = cardDirectory+'/'+QCDdir
@@ -165,7 +164,7 @@ if __name__ == "__main__":
     cardNames = [os.path.basename(name) for name in cardFnames]
     cardNames = [(name.replace(cardPattern+'_','')).replace('.input.root','') for name in cardNames]
 
-    print 'Card list', cardNames
+    #print 'Card list', cardNames
     argTuple = [(QCDdir, cardDirectory,name, ratDict) for name in cardNames]
     #print 'Card list', argTuple
 
@@ -180,42 +179,38 @@ if __name__ == "__main__":
     pool = Pool(nJobs)
     yieldDict = dict(pool.map(_getYieldsFromInput, argTuple))
 
-    #print yieldDict
+    ykeys = sorted(yieldDict.keys())
+
+    #print 'KEYS', sorted(ykeys)
 
     # Print yields
-    print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\tDifference(%)"
+    print 80*'#'
+    print "Yields with zero difference"
+    print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\t\t\tDifference(%)"
 
-    for bin in yieldDict:
+    for bin in ykeys:#yieldDict:
 
         (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
-        #(nAnti, nSel, nPred) = yieldDict[bin]
-        #print "%s:\t%f\t%f\t%f" % ( bin, yieldDict[bin][0], yieldDict[bin][1], yieldDict[bin][2])
-        print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, abs(nSel-nPred)/(nPred+0.00001)*100)
 
-    '''
-    #    limDict  = dict(pool.map(_, jobs)) if options.jobs > 0 else dict([_runIt(j) for j in jobs])
-    limDict = dict(pool.map(_getLimits, argTuple))
-    #   limDict  = dict(pool.map(_getLimits, cardNames))
+        if nSel != 0:
+            diff = abs(nSel-nPred)/(nSel)*100
+        else:
+            diff = 0
+
+        if diff == 0:
+            print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, diff)
 
     print 80*'#'
-    print 'Results:'
-    print 'Sample [sigma,r-value]'
+    print "Yields with non-zero difference"
+    print "Bin:\t\tNanti\t\t\t\t\tNpredict\t\t\t\tNselect\t\t\t\t\tDifference(%)"
+    for bin in ykeys:#yieldDict:
 
-    #    for key in limDict:
-    #        if limDict[key][0] != -1:
-    #            print key, limDict[key]
+        (nAnti, nAntiErr,nSel, nSelErr, nPred, nPredErr) = yieldDict[bin]
 
-    # make dict[sigma] = samplename
-    sigDict = {}
-    for key in limDict:
-    if limDict[key][0] != -1:
-    sigDict[limDict[key][0]] = key
+        if nSel != 0:
+            diff = abs(nSel-nPred)/(nSel)*100
+        else:
+            diff = 0
 
-    sigList = sigDict.keys()
-    sigList.sort(reverse = True)
-
-    #    for sigma in sigDict:
-    #        print sigma, sigDict[sigma], limDict[sigDict[sigma]]
-    for sigma in sigList:
-    print sigDict[sigma],'\t', limDict[sigDict[sigma]][0],'\t', limDict[sigDict[sigma]][1]
-    '''
+        if diff != 0:
+            print "%s:\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f\t+/-\t%f\t%f" % ( bin, nAnti, nAntiErr, nPred, nPredErr, nSel, nSelErr, diff)
