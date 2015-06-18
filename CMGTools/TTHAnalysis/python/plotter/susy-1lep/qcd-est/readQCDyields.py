@@ -28,6 +28,8 @@ def readRatios(fname = "f_ratios_NJ34_Nb0.txt"):
     for bin in ratioDict:
         print "%s:\t%f +/- %f" %(bin, ratioDict[bin][0], ratioDict[bin][1])
 
+    rfile.close()
+
     return ratioDict
 
 def applyRatio(binname, nAnti):
@@ -60,6 +62,8 @@ def _getYieldsFromInput(inargs):
 
     nPred = 0
     nPredErr = 0
+
+    cardf.Close()
 
     # Apply f-ratios for prediction
     if ratDict != {} and nAnti != 0:
