@@ -18,14 +18,14 @@ nameDict['ST3'] = "$[450,600]$"
 nameDict['ST4'] = "$>$600"
 
 # HT bin names
-nameDict['HT0'] = "500 $<$ HT $<$ 750"
-nameDict['HT1'] = "750 $<$ HT $<$ 1250"
-nameDict['HT2'] = "HT $>$ 1250"
+nameDict['HT0'] = "500 $<$ \\HT $<$ 750"
+nameDict['HT1'] = "750 $<$ \\HT $<$ 1250"
+nameDict['HT2'] = "\\HT $>$ 1250"
 
 # Nj bins
 nameDict['34j'] = "\\njet = 3,5"
 nameDict['45j'] = "\\njet = 4,5"
-nameDict['68j'] = "\\njet = 6,8"
+nameDict['68j'] = "\\njet = 6-8"
 
 def convLine(line):
 

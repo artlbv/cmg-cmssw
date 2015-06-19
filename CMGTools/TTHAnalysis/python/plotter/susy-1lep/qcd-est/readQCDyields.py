@@ -133,8 +133,10 @@ def makeTable(yieldDict, format = "text"):
 
         nColumns = 7
 
-        begtab = "\\begin{table}[!hbtp]\n\\begin{center}"
-        endtab = "\\end{center}\n\\label{tab:qcdYieldsHTbin}\n\\end{table}"
+        begtab = "\\begin{table}[!hbtp]"
+        begcent = "\\begin{center}"
+        endtab = "\\label{tab:qcdYieldsHTbin}\n\\end{table}"
+        endcent = "\\end{center}"
 
         header = "\\begin{tabular}{|"+nColumns*'c|'+"}"
         hline = "\\hline"
@@ -152,6 +154,7 @@ def makeTable(yieldDict, format = "text"):
 
             print begtab
             print caption.replace('HTbin',htbin)
+            print begcent
             print header
             print hline, hline
             # filter keys
@@ -180,8 +183,9 @@ def makeTable(yieldDict, format = "text"):
                     print " \\\\"
                 print hline
             print footer
+            print endcent
             print endtab.replace('HTbin',htbin)
-            print '\n\n'
+            print
     else:
         print 'Unknown print format!'
 
