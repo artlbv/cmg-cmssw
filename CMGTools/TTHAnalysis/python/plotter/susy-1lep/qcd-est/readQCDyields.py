@@ -200,6 +200,8 @@ if __name__ == "__main__":
     ratDict = {}
     ratDict = readRatios()
 
+    ## usage: python read.py cardDir textformat
+
     if len(sys.argv) > 1:
         cardDirectory = sys.argv[1]
     else:
