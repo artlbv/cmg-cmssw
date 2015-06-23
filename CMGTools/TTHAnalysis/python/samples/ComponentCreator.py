@@ -175,7 +175,7 @@ class ComponentCreator(object):
         ds = createDataset( user, dataset, pattern, True )
         files = ds.listOfGoodFiles()
         mapping = 'root://eoscms.cern.ch//eos/cms%s'
-        if useAAA: mapping = 'root://cms-xrd-global.cern.ch/%s'
+        if useAAA: mapping = 'dcap://dcache-cms-dcap.desy.de/pnfs/desy.de/cms/tier2/%s'
         return [ mapping % f for f in files]
 
 
@@ -184,7 +184,7 @@ class ComponentCreator(object):
         ds = createMyDataset( user, dataset, pattern, dbsInstance, True )
         files = ds.listOfGoodFiles()
         mapping = 'root://eoscms.cern.ch//eos/cms%s'
-        if useAAA: mapping = 'root://cms-xrd-global.cern.ch/%s'
+        if useAAA: mapping = 'dcap://dcache-cms-dcap.desy.de/pnfs/desy.de/cms/tier2/%s'
         return [ mapping % f for f in files]
 
     def getSkimEfficiency(self,dataset,user):
