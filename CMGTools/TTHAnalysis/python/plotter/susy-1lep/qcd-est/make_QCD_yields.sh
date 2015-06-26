@@ -34,7 +34,7 @@ echo "CMG tuples:" $T
 echo "Friend Trees:" $FT
 
 LUMI=3.0
-OUTDIR="yields/QCD_yields_3fb_test"
+OUTDIR="yields/QCD_yields_3fb_AllBins"
 OPTIONS=" -P $T -j $J -l $LUMI -f --s2v --tree treeProducerSusySingleLepton --od $OUTDIR --asimov "
 
 # Get current plotter dir
@@ -57,60 +57,59 @@ function makeCard_1l {
 
     # b-jet cuts
     case $nB in
-        0B)  GO="${GO} -R nBtags 0nB nBJetMedium30==0 "; EXTRALABEL="${EXTRALABEL} nB=0\n" ;;
-        1B)  GO="${GO} -R nBtags nBtags nBJetMedium30==1 "; EXTRALABEL="${EXTRALABEL} nB=1\n" ;;
-        2B)  GO="${GO} -R nBtags 2nB nBJetMedium30==2 "; EXTRALABEL="${EXTRALABEL} nB=2\n" ;;
-        2Btop)  GO="${GO} -R nBtags 2nB nBJetMedium30==2&&Topness>5 "; EXTRALABEL="${EXTRALABEL} nB=2(+topness)\n" ;;
-        1p)  GO="${GO} -R nBtags nBtagsp nBJetMedium30>=1 "; EXTRALABEL="${EXTRALABEL} nB#geq1\n" ;;
-        2p)  GO="${GO} -R nBtags 2nBp nBJetMedium30>=2 "; EXTRALABEL="${EXTRALABEL} nB#geq2\n" ;;
-        3p)  GO="${GO} -R nBtags 3nBp nBJetMedium30>=3 "; EXTRALABEL="${EXTRALABEL} nB#geq3\n" ;;
+	0B)  GO="${GO} -R nBtags 0nB nBJetMedium30==0 "; EXTRALABEL="${EXTRALABEL} nB=0\n" ;;
+	1B)  GO="${GO} -R nBtags nBtags nBJetMedium30==1 "; EXTRALABEL="${EXTRALABEL} nB=1\n" ;;
+	2B)  GO="${GO} -R nBtags 2nB nBJetMedium30==2 "; EXTRALABEL="${EXTRALABEL} nB=2\n" ;;
+	2Btop)  GO="${GO} -R nBtags 2nB nBJetMedium30==2&&Topness>5 "; EXTRALABEL="${EXTRALABEL} nB=2(+topness)\n" ;;
+	1p)  GO="${GO} -R nBtags nBtagsp nBJetMedium30>=1 "; EXTRALABEL="${EXTRALABEL} nB#geq1\n" ;;
+	2p)  GO="${GO} -R nBtags 2nBp nBJetMedium30>=2 "; EXTRALABEL="${EXTRALABEL} nB#geq2\n" ;;
+	3p)  GO="${GO} -R nBtags 3nBp nBJetMedium30>=3 "; EXTRALABEL="${EXTRALABEL} nB#geq3\n" ;;
     esac;
 
     # ST categories
     case $ST in
-        STi)  GO="${GO} -R STcut st200Inf ST>200 "; EXTRALABEL="${EXTRALABEL} ST>200 GeV\n" ;;
-        ST0)  GO="${GO} -R STcut st200250 ST>200&&ST<250 "; EXTRALABEL="${EXTRALABEL} 200<ST<250 GeV\n" ;;
-        ST1)  GO="${GO} -R STcut st250350 ST>250&&ST<350 "; EXTRALABEL="${EXTRALABEL} 250<ST<350 GeV\n" ;;
-        ST2)  GO="${GO} -R STcut st350450 ST>350&&ST<450 "; EXTRALABEL="${EXTRALABEL} 350<ST<450 GeV\n" ;;
-        ST3)  GO="${GO} -R STcut st450550 ST>450&&ST<550 "; EXTRALABEL="${EXTRALABEL} 450<ST<550 GeV\n" ;;
-        ST4)  GO="${GO} -R STcut st550700 ST>550&&ST<700 "; EXTRALABEL="${EXTRALABEL} 550<ST<700 GeV\n" ;;
-        ST5)  GO="${GO} -R STcut st700Inf ST>700 "; EXTRALABEL="${EXTRALABEL} ST>700 GeV\n" ;;
-        STDynDP0)  GO="${GO} -R STcut st200250 ST>200&&ST<250 -R dphi dp10 fabs(DeltaPhiLepW)>1.0 "; EXTRALABEL="${EXTRALABEL} 200<ST<250 GeV\n #Delta#phi>1.0\n" ;;
-        STDynDP1)  GO="${GO} -R STcut st250350 ST>250&&ST<350 -R dphi dp10 fabs(DeltaPhiLepW)>1.0 "; EXTRALABEL="${EXTRALABEL} 250<ST<350 GeV\n #Delta#phi>1.0\n" ;;
-        STDynDP2)  GO="${GO} -R STcut st350450 ST>350&&ST<450 -R dphi dp075 fabs(DeltaPhiLepW)>0.75 "; EXTRALABEL="${EXTRALABEL} 350<ST<450 GeV\n #Delta#phi>0.75\n" ;;
-        STDynDP3)  GO="${GO} -R STcut st450550 ST>450&&ST<550 -R dphi dp075 fabs(DeltaPhiLepW)>0.75 "; EXTRALABEL="${EXTRALABEL} 450<ST<550 GeV\n #Delta#phi>0.75\n" ;;
-        STDynDP4)  GO="${GO} -R STcut st550700 ST>550&&ST<700 -R dphi dp05 fabs(DeltaPhiLepW)>0.5 "; EXTRALABEL="${EXTRALABEL} 550<ST<700 GeV\n #Delta#phi>0.5\n" ;;
-        STDynDP5)  GO="${GO} -R STcut st700Inf ST>700 -R dphi dp05 fabs(DeltaPhiLepW)>0.5 "; EXTRALABEL="${EXTRALABEL} ST>700 GeV\n #Delta#phi>0.5\n" ;;
+	STi)  GO="${GO} -R STcut st200Inf ST>200 "; EXTRALABEL="${EXTRALABEL} ST>200 GeV\n" ;;
+	ST0)  GO="${GO} -R STcut st200250 ST>200&&ST<250 "; EXTRALABEL="${EXTRALABEL} 200<ST<250 GeV\n" ;;
+	ST1)  GO="${GO} -R STcut st250350 ST>250&&ST<350 "; EXTRALABEL="${EXTRALABEL} 250<ST<350 GeV\n" ;;
+	ST2)  GO="${GO} -R STcut st350450 ST>350&&ST<450 "; EXTRALABEL="${EXTRALABEL} 350<ST<450 GeV\n" ;;
+	ST3)  GO="${GO} -R st200 st450600 ST>450&&ST<600 "; EXTRALABEL="${EXTRALABEL} 450<ST<600 GeV\n" ;;
+	ST4)  GO="${GO} -R st200 st600Inf ST>600 "; EXTRALABEL="${EXTRALABEL} ST>600 GeV\n" ;;
+	STDynDP0)  GO="${GO} -R STcut st200250 ST>200&&ST<250 -R dphi dp10 fabs(DeltaPhiLepW)>1.0 "; EXTRALABEL="${EXTRALABEL} 200<ST<250 GeV\n #Delta#phi>1.0\n" ;;
+	STDynDP1)  GO="${GO} -R STcut st250350 ST>250&&ST<350 -R dphi dp10 fabs(DeltaPhiLepW)>1.0 "; EXTRALABEL="${EXTRALABEL} 250<ST<350 GeV\n #Delta#phi>1.0\n" ;;
+	STDynDP2)  GO="${GO} -R STcut st350450 ST>350&&ST<450 -R dphi dp075 fabs(DeltaPhiLepW)>0.75 "; EXTRALABEL="${EXTRALABEL} 350<ST<450 GeV\n #Delta#phi>0.75\n" ;;
+	STDynDP3)  GO="${GO} -R STcut st450550 ST>450&&ST<550 -R dphi dp075 fabs(DeltaPhiLepW)>0.75 "; EXTRALABEL="${EXTRALABEL} 450<ST<550 GeV\n #Delta#phi>0.75\n" ;;
+	STDynDP4)  GO="${GO} -R STcut st550700 ST>550&&ST<700 -R dphi dp05 fabs(DeltaPhiLepW)>0.5 "; EXTRALABEL="${EXTRALABEL} 550<ST<700 GeV\n #Delta#phi>0.5\n" ;;
+	STDynDP5)  GO="${GO} -R STcut st700Inf ST>700 -R dphi dp05 fabs(DeltaPhiLepW)>0.5 "; EXTRALABEL="${EXTRALABEL} ST>700 GeV\n #Delta#phi>0.5\n" ;;
     esac;
 
     # jet multiplicities
     case $nJ in
-        23j)  GO="${GO} -R nJets 23j nCentralJet30>=2&&nCentralJet30<=3"; EXTRALABEL="${EXTRALABEL} 2-3 jets\n"  ;;
-        34j)  GO="${GO} -R nJets 34j nCentralJet30>=3&&nCentralJet30<=4"; EXTRALABEL="${EXTRALABEL} 3-4 jets\n"  ;;
-        45j)  GO="${GO} -R nJets 45j nCentralJet30>=4&&nCentralJet30<=5"; EXTRALABEL="${EXTRALABEL} 4-5 jets\n"  ;;
-        68j)  GO="${GO} -R nJets 67j nCentralJet30>=6&&nCentralJet30<=8"; EXTRALABEL="${EXTRALABEL} 6-8 jets\n"  ;;
-        6Infj)  GO="${GO} -R nJets geq6j nCentralJet30>=6"; EXTRALABEL="${EXTRALABEL} #geq6 jets\n"  ;;
-        9Infj)  GO="${GO} -R nJets geq8j nCentralJet30>=9"; EXTRALABEL="${EXTRALABEL} #geq9 jets\n"  ;;
-        68TTj)  GO="${GO} -R nJets 68TTj nCentralJet30+2*nHighPtTopTagPlusTau23>=6&&nCentralJet30+2*nHighPtTopTagPlusTau23<9"; EXTRALABEL="${EXTRALABEL} 6-8 TT enh. jets\n"  ;;
-        9InfTTj)  GO="${GO} -R nJets 9InfTTj nCentralJet30+2*nHighPtTopTagPlusTau23>=9"; EXTRALABEL="${EXTRALABEL} #geq9 TT enh. jets\n"  ;;
+	23j)  GO="${GO} -R nJets 23j nCentralJet30>=2&&nCentralJet30<=3"; EXTRALABEL="${EXTRALABEL} 2-3 jets\n"  ;;
+	34j)  GO="${GO} -R nJets 34j nCentralJet30>=3&&nCentralJet30<=4"; EXTRALABEL="${EXTRALABEL} 3-4 jets\n"  ;;
+	45j)  GO="${GO} -R nJets 45j nCentralJet30>=4&&nCentralJet30<=5"; EXTRALABEL="${EXTRALABEL} 4-5 jets\n"  ;;
+	68j)  GO="${GO} -R nJets 67j nCentralJet30>=6&&nCentralJet30<=8"; EXTRALABEL="${EXTRALABEL} 6-8 jets\n"  ;;
+	6Infj)  GO="${GO} -R nJets geq6j nCentralJet30>=6"; EXTRALABEL="${EXTRALABEL} #geq6 jets\n"  ;;
+	9Infj)  GO="${GO} -R nJets geq8j nCentralJet30>=9"; EXTRALABEL="${EXTRALABEL} #geq9 jets\n"  ;;
+	68TTj)  GO="${GO} -R nJets 68TTj nCentralJet30+2*nHighPtTopTagPlusTau23>=6&&nCentralJet30+2*nHighPtTopTagPlusTau23<9"; EXTRALABEL="${EXTRALABEL} 6-8 TT enh. jets\n"  ;;
+	9InfTTj)  GO="${GO} -R nJets 9InfTTj nCentralJet30+2*nHighPtTopTagPlusTau23>=9"; EXTRALABEL="${EXTRALABEL} #geq9 TT enh. jets\n"  ;;
     esac;
 
     # HT and "R&D" categories
     case $HT in
-        HTi) GO="${GO} -R HTcut ht500Inf HT>500"; EXTRALABEL="${EXTRALABEL} HT>500 GeV\n"  ;;
-        HT0) GO="${GO} -R HTcut ht500750 HT>500&&HT<=750"; EXTRALABEL="${EXTRALABEL} 500<HT<750 GeV\n"  ;;
-        HT1) GO="${GO} -R HTcut ht7501250 HT>750&&HT<=1250"; EXTRALABEL="${EXTRALABEL} 750<HT<1250 GeV\n"  ;;
-        HT2) GO="${GO} -R HTcut ht1250Inf HT>1250"; EXTRALABEL="${EXTRALABEL} HT>1250 GeV\n"  ;;
+	HTi) GO="${GO} -R HTcut ht500Inf HT>500"; EXTRALABEL="${EXTRALABEL} HT>500 GeV\n"  ;;
+	HT0) GO="${GO} -R HTcut ht500750 HT>500&&HT<=750"; EXTRALABEL="${EXTRALABEL} 500<HT<750 GeV\n"  ;;
+	HT1) GO="${GO} -R HTcut ht7501250 HT>750&&HT<=1250"; EXTRALABEL="${EXTRALABEL} 750<HT<1250 GeV\n"  ;;
+	HT2) GO="${GO} -R HTcut ht1250Inf HT>1250"; EXTRALABEL="${EXTRALABEL} HT>1250 GeV\n"  ;;
     esac;
 
     echo $EXTRALABEL
 
     if [[ "$PRETEND" == "1" ]]; then
-        echo "making datacard $OUT from makeShapeCardsSusy.py $McaFile $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
+	echo "making datacard $OUT from makeShapeCardsSusy.py $McaFile $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
     else
-        #echo "making datacard $OUT from makeShapeCardsSusy.py $McaFile $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
-        python $PLOTDIR/makeShapeCardsSusy.py $PLOTDIR/$McaFile $PLOTDIR/susy-1lep/$CutFlowCard "$EXPR" "$BINS" $SYSTS -o $OUT $GO --dummyYieldsForZeroBkg;
-        echo "  -- done at $(date)";
+	#echo "making datacard $OUT from makeShapeCardsSusy.py $McaFile $CutFlowCard \"$EXPR\" \"$BINS\" $SYSTS $GO --dummyYieldsForZeroBkg;"
+	python $PLOTDIR/makeShapeCardsSusy.py $PLOTDIR/$McaFile $PLOTDIR/susy-1lep/$CutFlowCard "$EXPR" "$BINS" $SYSTS -o $OUT $GO --dummyYieldsForZeroBkg;
+	echo "  -- done at $(date)";
     fi;
 }
 
@@ -120,30 +119,30 @@ function combineCardsSmart {
     AllC=0
     CMD=""
     for C in $*; do
-        # missing datacards
-        test -f $C || continue;
+	# missing datacards
+	test -f $C || continue;
 
-        if grep -q "DummyContent" $C; then
-            echo "empty bin ${C}" >&2
-            DummyC=$(($DummyC+1))
-            if grep -q "observation 0.0$" $C; then
-                echo "this is not the way it was intended..."
-            fi
-        fi
+	if grep -q "DummyContent" $C; then
+	    echo "empty bin ${C}" >&2
+	    DummyC=$(($DummyC+1))
+	    if grep -q "observation 0.0$" $C; then
+		echo "this is not the way it was intended..."
+	    fi
+	fi
 
-        grep -q "observation 0.0$" $C && continue # skip empty bins
+	grep -q "observation 0.0$" $C && continue # skip empty bins
 #       grep -q "observation 0.01$" $C && grep -q "DummyContent" $C && continue #skip bins with only DummyContent as well
-        AllC=$((AllC+1))
-        CMD="${CMD} $(basename $C .card.txt)=$C ";
+	AllC=$((AllC+1))
+	CMD="${CMD} $(basename $C .card.txt)=$C ";
     done
     if [[ "$CMD" == "" ]]; then
-        echo "Not any card found in $*" 1>&2 ;
+	echo "Not any card found in $*" 1>&2 ;
     else
-        echo "combineCards.py $CMD" >&2
-        combineCards.py $CMD
+	echo "combineCards.py $CMD" >&2
+	combineCards.py $CMD
     fi
     if [[ "$DummyC" != "0" ]]; then
-        echo "In total $DummyC out of $AllC are empty, but taken into account by adding DummyContent." >&2
+	echo "In total $DummyC out of $AllC are empty, but taken into account by adding DummyContent." >&2
     fi
     #echo "In total $DummyC out of $AllC are empty, but taken into account by adding DummyContent." >&2
 }
@@ -169,68 +168,19 @@ if [[ "$1" == "--makeCards" ]]; then
 #    for ST in STDynDP0 STDynDPHI STDynDP2 STDynDP3 STDynDP4 STDynDP5; do for nJ in 45j 68j 6Infj 9Infj; do for nB in 1p 1B 2B 3p; do for HT in HT0 HT1 HT2; do for RD in Def; do
 
     # for QCD
-    for ST in STi ST0 ST1 ST2 ST3 ST4; do
-	for nJ in 34j; do # 45j 68j; do
-	    for nB in 0B 1B 2p; do
-		for HT in HTi; do #HT0 HT1 HT2; do
+    for ST in ST0 ST1 ST2 ST3 ST4; do
+	for nJ in 45j 68j; do
+	    for nB in 0B 1B 2B 3p; do
+		for HT in HT0 HT1 HT2; do
 		    echo "###################################################################"
-                    echo " --- QCDyield_${nB}_${ST}_${nJ}_${HT} ---"
-                    makeCard_1l $CnC_expr $CnC_bins $SYSTS QCDyield_${nB}_${ST}_${nJ}_${HT} "$OPTIONS";
-                done;
+		    echo " --- QCDyield_${nB}_${ST}_${nJ}_${HT} ---"
+		    makeCard_1l $CnC_expr $CnC_bins $SYSTS QCDyield_${nB}_${ST}_${nJ}_${HT} "$OPTIONS";
+		done;
 	    done;
 	done;
     done;
     exit 0
 
-fi
-
-if [[ "$1" == "1l-combine" ]]; then
-
-    if [[ ! $CMSSW_VERSION == *"CMSSW_7_1_"* ]] ;then
-        echo "You don't have the correct CMSSW environment!"
-        echo "Found: $CMSSW_VERSION, need CMSSW_7_1_X"
-        exit 0
-    fi
-
-    echo "Making combined datacards"
-
-    if [[ "$PRETEND" == "1" ]]; then
-        echo "Pretending to do cards"
-        exit 0
-    fi
-
-    for D in $OUTDIR/T[0-9]*; do
-        echo "Making combined datacards2"
-        test -f $D/QCDyield_2B_ST1_68j_HT1_DPhi05.card.txt || continue
-        echo "Making combined datacards3"
-        (cd $D && echo "    $D";
-            for nB in 1B 2B 3p; do
-                combineCardsSmart QCDyield_${nB}_{STDynDP0,STDynDP1,STDynDP2,STDynDP3,STDynDP4,STDynDP5}_6Infj_{HT0,HT1,HT2}_Def.card.txt >  QCDyield_${nB}_standardnJ.card.txt
-                combineCardsSmart QCDyield_${nB}_{STDynDP0,STDynDP1,STDynDP2,STDynDP3,STDynDP4,STDynDP5}_{68j,9Infj}_{HT0,HT1,HT2}_Def.card.txt >  QCDyield_${nB}_finenJ.card.txt
-
-            done
-            combineCardsSmart QCDyield_{1B,2B,3p}_standardnJ.card.txt >  QCDyield_standardnJ.card.txt # standard nJet-binning; HT-binning
-            combineCardsSmart QCDyield_{1B,2B,3p}_finenJ.card.txt >  QCDyield_finenJ.card.txt #fine nJet-binning; HT-binning
-
-            combineCardsSmart QCDyield_{1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_DPhi05.card.txt >  QCDyield_Dphi05.card.txt #fine nJet-binning; HT-binning; DPhi>0.5
-            combineCardsSmart QCDyield_{1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_Stop.card.txt >  QCDyield_STop.card.txt #fine nJet-binning; HT-binning; single topness only
-            combineCardsSmart QCDyield_{1B,2Btop,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_Stop.card.txt >  QCDyield_STop_Top2B.card.txt #fine nJet-binning; HT-binning; use topness for 2B
-            combineCardsSmart QCDyield_{1B,2Btop,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,9Infj}_{HT0,HT1,HT2}_LowLepPtStop.card.txt >  QCDyield_LowLepPtStop.card.txt #fine nJet-binning; HT-binning; use topness for 2B
-
-
-
-            #merge everything to be able to parse easily the datacards
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi00.card.txt > QCDyield_ForYieldComparisons_DPhi00.card.txt
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi05.card.txt > QCDyield_ForYieldComparisons_DPhi05.card.txt
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi075.card.txt > QCDyield_ForYieldComparisons_DPhi075.card.txt
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_DPhi10.card.txt > QCDyield_ForYieldComparisons_DPhi10.card.txt
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{STDynDP0,STDynDP1,STDynDP2,STDynDP3,STDynDP4,STDynDP5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_Def.card.txt > QCDyield_ForYieldComparisons_DynamicDPhi.card.txt
-
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_Stop.card.txt > QCDyield_ForYieldComparisons_Stop.card.txt
-            combineCardsSmart QCDyield_{1p,1B,2B,3p}_{ST0,ST1,ST2,ST3,ST4,ST5}_{68j,6Infj,9Infj}_{HT0,HT1,HT2}_Top.card.txt > QCDyield_ForYieldComparisons_Top.card.txt
-
-        )
-    done
 fi
 
 echo "Done at $(date)";

@@ -1,0 +1,12 @@
+# QCD
+QCDNb1     : QCD_HT_250To500          : xsec : Selected != 0 && nBJetMedium30 == 1; Label ="1 N_{btag}", FillColor=ROOT.kBlue, NormSystematic=0.5
+QCDNb1     : QCD_HT_500To1000         : xsec : Selected != 0 && nBJetMedium30 == 1; Label ="1 N_{btag}", FillColor=ROOT.kBlue, NormSystematic=0.5
+QCDNb1     : QCD_HT_1000ToInf         : xsec : Selected != 0 && nBJetMedium30 == 1; Label ="1 N_{btag}", FillColor=ROOT.kBlue, NormSystematic=0.5
+
+QCDNb2     : QCD_HT_250To500          : xsec : Selected != 0 && nBJetMedium30 == 2; Label ="2 N_{btag}", FillColor=ROOT.kBlack, NormSystematic=0.5
+QCDNb2     : QCD_HT_500To1000         : xsec : Selected != 0 && nBJetMedium30 == 2; Label ="2 N_{btag}", FillColor=ROOT.kBlack, NormSystematic=0.5
+QCDNb2     : QCD_HT_1000ToInf         : xsec : Selected != 0 && nBJetMedium30 == 2; Label ="2 N_{btag}", FillColor=ROOT.kBlack, NormSystematic=0.5
+
+QCDNb3     : QCD_HT_250To500          : xsec : Selected != 0 && nBJetMedium30 >= 3; Label ="N_{btag}\#geq3", FillColor=ROOT.kRed, NormSystematic=0.5
+QCDNb3     : QCD_HT_500To1000         : xsec : Selected != 0 && nBJetMedium30 >= 3; Label ="N_{btag}\#geq3", FillColor=ROOT.kRed, NormSystematic=0.5
+QCDNb3     : QCD_HT_1000ToInf         : xsec : Selected != 0 && nBJetMedium30 >= 3; Label ="N_{btag}\#geq3", FillColor=ROOT.kRed, NormSystematic=0.5
