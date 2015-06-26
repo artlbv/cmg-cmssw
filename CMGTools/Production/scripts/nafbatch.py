@@ -90,6 +90,9 @@ root -b -q treeProducerSusySingleLepton/tree.root 2>&1 > .filetest
 if grep -r "Error" .filetest ; then
    echo "Job failed!"
    touch failed
+elif grep -r "0x0" .filetest ; then
+   echo "Job failed!"
+   touch failed
 elif grep -r "File" .filetest; then
    echo "Successfully" $log
    touch processed
