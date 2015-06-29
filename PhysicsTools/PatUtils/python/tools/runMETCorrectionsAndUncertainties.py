@@ -800,7 +800,7 @@ class RunMETCorrectionsAndUncertainties(ConfigToolBase):
         
         if not hasattr(process, "ak4PFJets"):
             process.load("RecoJets.JetProducers.ak4PFJets_cfi")
-            print "reclustering ak4pf", pfCandCollection
+            #print "reclustering ak4pf", pfCandCollection
             process.ak4PFJets.src = pfCandCollection 
             process.ak4PFJets.doAreaFastjet = True
             
