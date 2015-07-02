@@ -111,7 +111,11 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
         histList = _histListRcs
         plotOpt += 'e1'
 
-    cname = 'canvST_'+ flag + str(doNorm)
+    # define Canvas (plot) name
+    cname = 'canvST_'+ flag
+
+    if doNorm == True:
+        cname += 'Norm'
 
     canv = TCanvas(cname,'ST for different Nj and HT bins in '+ flag,800,600)
 
@@ -135,6 +139,9 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
         canv.SetLogy()
     else:
         histList[0].GetYaxis().SetRangeUser(0,1)
+
+    # Set ST/LT range
+    histList[0].GetXaxis().SetRangeUser(250,1000)
 
     _canvStore.append(canv)
     return canv
