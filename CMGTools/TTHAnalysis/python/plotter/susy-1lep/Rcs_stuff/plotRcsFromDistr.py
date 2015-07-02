@@ -12,6 +12,7 @@ _histListCR = []
 _histListRcs = []
 
 _canvStore = []
+_histStore = []
 
 def getHistsFromFile(tfile, flag = 'SR'):
 
@@ -117,9 +118,20 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
     if doNorm == True:
         cname += 'Norm'
 
-    canv = TCanvas(cname,'ST for different Nj and HT bins in '+ flag,800,600)
+    canv = TCanvas(cname,'L_{T} in different Nj and HT bins for '+ flag,800,800)
+
+    ## clone hists for this plot
+    histCloneList = []
+
+    #for hist in histList:
+    #histCloneList.append(hist.Clone(hist.GetName()+cname))
+
+    #histList = histCloneList
 
     for ind,hist in enumerate(histList):
+
+        #_histStore.append(hist)
+        #print 'Hist name', hist.GetName()
 
         if doNorm:
             hist.DrawNormalized(plotOpt)
@@ -132,16 +144,32 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
     leg.SetFillColor(0)
 
     # set proper title
-    histList[0].SetTitle(canv.GetTitle())
-
-
-    if flag != 'Rcs':
-        canv.SetLogy()
-    else:
-        histList[0].GetYaxis().SetRangeUser(0,1)
+    first =  canv.GetListOfPrimitives()[0]
+    first.SetTitle(canv.GetTitle())
 
     # Set ST/LT range
-    histList[0].GetXaxis().SetRangeUser(250,1000)
+    first.GetXaxis().SetRangeUser(250,1000)
+
+    # axis label
+    first.GetXaxis().SetLabelSize(0.04)
+    first.GetYaxis().SetLabelSize(0.04)
+
+    # axis titles
+    first.GetXaxis().SetTitleSize(0.05)
+
+    first.GetYaxis().SetTitleSize(0.04)
+    first.GetYaxis().SetTitleOffset(1.0)
+
+    # Y axis mod
+    if flag != 'Rcs':
+        canv.SetLogy()
+
+        if doNorm:
+            first.GetYaxis().SetTitle("a.u.")
+            first.GetYaxis().SetRangeUser(0.001,0.2)
+    else:
+        first.GetYaxis().SetTitle("R_{CS}")
+        first.GetYaxis().SetRangeUser(0,1)
 
     _canvStore.append(canv)
     return canv
@@ -173,13 +201,15 @@ if __name__ == "__main__":
         print "Couldn't open the file"
         exit(0)
 
+    # get hists from files
     getHistsFromFile(srfile)
     getHistsFromFile(crfile)
 
+    # customise hists
     custHists()
 
+    # make rcs plots
     getRcsPlots()
-
 
     canvCRnorm = plotHists('CR',True)
     canvSRnorm = plotHists('SR',True)
