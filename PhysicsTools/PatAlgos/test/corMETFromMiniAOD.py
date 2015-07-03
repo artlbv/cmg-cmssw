@@ -22,20 +22,20 @@ process.options = cms.untracked.PSet(
 
 # How many events to process
 process.maxEvents = cms.untracked.PSet( 
-   input = cms.untracked.int32(10000)
+   input = cms.untracked.int32(1000)
 )
 
 ### =====================================================================================================
-usePrivateSQlite =False
+usePrivateSQlite =True
 
 from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
 process.GlobalTag.globaltag = 'MCRUN2_74_V9A::All'   # for Simulation #same globalTag
 
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
-    era = 'Summer15_V5_MC'
+    era="Summer15_V5_MC"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-                               connect = cms.string('sqlite_file:'+os.path.expandvars('$CMSSW_BASE/src/CMGTools/RootTools/data/jec/'+era+'.db')),
+                               connect = cms.string( "sqlite_file:PhysicsTools/PatAlgos/test/"+era+".db" ),
                                toGet =  cms.VPSet(
             cms.PSet(
                 record = cms.string("JetCorrectionsRecord"),
