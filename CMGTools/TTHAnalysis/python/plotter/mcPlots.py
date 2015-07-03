@@ -513,6 +513,30 @@ class PlotMaker:
                     #print "final blinded range x = [%s, %s]" % (xblind[0],xblind[1])
                 elif blind != "None":
                     raise RuntimeError, "Unrecongnized value for 'Blinded' option, stopping here"
+                # Pseudo-data?
+                if self._options.pseudoData:
+                    if "data" in pmap: raise RuntimeError, "Can't use --pseudoData if there's also real data (maybe you want --xp data?)"
+                    if self._options.pseudoData == "background":
+                        pdata = pmap["background"]
+                        pdata = pdata.Clone(str(pdata.GetName()).replace("_background","_data"))
+                    elif self._options.pseudoData == "all":
+                        pdata = pmap["background"]
+                        pdata = pdata.Clone(str(pdata.GetName()).replace("_background","_data"))
+                        if "signal" in pmap: pdata.Add(pmap["signal"])
+                    else:
+                        raise RuntimeError, "Pseudo-data option %s not supported" % self._options.pseudoData
+                    if "TH1" in pdata.ClassName():
+                        for i in xrange(1,pdata.GetNbinsX()+1):
+                            pdata.SetBinContent(i, ROOT.gRandom.Poisson(pdata.GetBinContent(i)))
+                            pdata.SetBinError(i, sqrt(pdata.GetBinContent(i)))
+                    elif "TH2" in pdata.ClassName():
+                        for ix in xrange(1,pdata.GetNbinsX()+1):
+                          for iy in xrange(1,pdata.GetNbinsY()+1):
+                            pdata.SetBinContent(ix, iy, ROOT.gRandom.Poisson(pdata.GetBinContent(ix, iy)))
+                            pdata.SetBinError(ix, iy, sqrt(pdata.GetBinContent(ix, iy)))
+                    else:
+                        raise RuntimeError, "Can't make pseudo-data for %s" % pdata.ClassName()
+                    pmap["data"] = pdata
                 #
                 if not makeStack: 
                     for k,v in pmap.iteritems():
@@ -635,7 +659,7 @@ class PlotMaker:
                 else: 
                     if self._options.errors:
                         ROOT.gStyle.SetErrorX(0.5)
-                        stack.Draw("SAME E NOSTACK")
+                        stack.Draw("SAME HIST E NOSTACK")
                     else:
                         stack.Draw("SAME HIST NOSTACK")
                 if pspec.getOption('MoreY',1.0) > 1.0:
@@ -768,6 +792,7 @@ def addPlotMakerOptions(parser):
     parser.add_option("--legendWidth", dest="legendWidth", type="float", default=0.25, help="Width of the legend")
     parser.add_option("--legendTextSize", dest="legendTextSize", type="float", default=0.035, help="Textsize used in the legend (if no ratio plot is done)")
     parser.add_option("--flagDifferences", dest="flagDifferences", action="store_true", default=False, help="Flag plots that are different (when using only two processes, and plotmode nostack")
+    parser.add_option("--pseudoData", dest="pseudoData", type="string", default=None, help="If set to 'background' or 'all', it will plot also a pseudo-dataset made from background (or signal+background) with Poisson fluctuations in each bin.")
 
 if __name__ == "__main__":
     from optparse import OptionParser
