@@ -94,8 +94,8 @@ METReader::analyze(const Event& iEvent,
   //============================================================
 
   //Raw MET ====================================================
-  _origRaw = origMet[0].shiftedPx(pat::MET::NoShift, pat::MET::Raw);
-  _newRaw  = newMet[0].shiftedPx(pat::MET::NoShift, pat::MET::Raw);
+  _origRaw = origMet[0].shiftedPt(pat::MET::NoShift, pat::MET::Raw);
+  _newRaw  = newMet[0].shiftedPt(pat::MET::NoShift, pat::MET::Raw);
 
   //Calo MET ( in 74X, original collection only) =================
   _origCalo= origMet[0].caloMETPt();
