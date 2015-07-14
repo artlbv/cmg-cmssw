@@ -14,29 +14,24 @@ _histListRcs = []
 _canvStore = []
 _histStore = []
 
-def getHistsFromFile(tfile, flag = 'SR'):
+def getHistsFromFile(tfile, sample = 'background'):
 
-    if 'SR' in tfile.GetName():
-        flag = 'SR'
-    elif 'CR' in tfile.GetName():
-        flag = 'CR'
-
-    print '# Getting hist from', flag
+    print '# Getting hist from sample', sample
 
     for key in tfile.GetListOfKeys():
         hist = key.ReadObj()
 
         if 'TH1' in str(type(hist)):
             ## skip inclusive ST
-            if 'ST_background' == hist.GetName(): continue
-            if 'background' in hist.GetName():
+            if 'ST_'+sample == hist.GetName(): continue
+            #if 'background' in hist.GetName():
+            if sample in hist.GetName():
                 hname = hist.GetName()
 
-                hname += '_'+flag
-
-                if flag == 'SR':
+                ## determine SR or CR
+                if 'SR' in hname:
                     _histListSR.append(hist.Clone(hname))
-                elif flag == 'CR':
+                elif 'CR' in hname:
                     _histListCR.append(hist.Clone(hname))
     return 1
 
@@ -74,14 +69,18 @@ def custHists():
         hist.SetMarkerStyle(0)
 
         ## rebin
-        #hist.Rebin(2)
+        hist.Rebin(2)
 
         htitle = ''
         ## NJ bins
         if 'NJ45'in hname:
-            htitle = 'Nj = 4-5, '
-        elif 'NJ6'in hname:
-            htitle = 'Nj #geq 6, '
+            htitle = 'Nj #in [4,5] '
+        elif 'NJ6i'in hname:
+            htitle = 'Nj #geq 6 '
+        elif 'NJ68'in hname:
+            htitle = 'Nj #in [6,8] '
+        elif 'NJ9i'in hname:
+            htitle = 'Nj #geq 9 '
 
         ## HT bins
         if 'HT500750'in hname:
@@ -112,13 +111,16 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
         histList = _histListRcs
         plotOpt += 'e1'
 
+    hname = histList[0].GetName()
+    varName = hname[:hname.find('_')]
+
     # define Canvas (plot) name
-    cname = 'canvST_'+ flag
+    cname = 'canv_'+ varName + '_' + flag
 
     if doNorm == True:
         cname += 'Norm'
 
-    canv = TCanvas(cname,'L_{T} in different Nj and HT bins for '+ flag,800,800)
+    canv = TCanvas(cname,varName+' in different bins for '+ flag,800,800)
 
     ## clone hists for this plot
     histCloneList = []
@@ -148,7 +150,10 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
     first.SetTitle(canv.GetTitle())
 
     # Set ST/LT range
-    first.GetXaxis().SetRangeUser(250,1000)
+    if 'ST' in varName or 'LT' in varName:
+        first.GetXaxis().SetRangeUser(250,1000)
+    elif 'HT' in varName:
+        first.GetXaxis().SetRangeUser(500,2000)
 
     # axis label
     first.GetXaxis().SetLabelSize(0.04)
@@ -166,67 +171,90 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
 
         if doNorm:
             first.GetYaxis().SetTitle("a.u.")
-            first.GetYaxis().SetRangeUser(0.001,0.2)
+            first.GetYaxis().SetRangeUser(0.001,0.8)
     else:
         first.GetYaxis().SetTitle("R_{CS}")
-        first.GetYaxis().SetRangeUser(0,1)
+        first.GetYaxis().SetRangeUser(0,0.79)
 
     _canvStore.append(canv)
     return canv
 
 if __name__ == "__main__":
 
-    if len(sys.argv) > 2:
-        SRfileName = sys.argv[1]
-        CRfileName = sys.argv[2]
-        print '#SRfileName is', SRfileName
-        print '#CRfileName is', CRfileName
+    ## remove '-b' option
+    _batchMode = False
+
+    if '-b' in sys.argv:
+        sys.argv.remove('-b')
+        _batchMode = True
+
+    if len(sys.argv) > 1:
+        fileName = sys.argv[1]
+        print '#fileName is', fileName
     else:
         print '#No file names given'
         exit(0)
 
-    srfile  = TFile(SRfileName, "READ")
-    crfile  = TFile(CRfileName, "READ")
+    tfile  = TFile(fileName, "READ")
+    indir = os.path.dirname(fileName)
 
-    if len(sys.argv) > 3:
-        outName = sys.argv[3]
+    if len(sys.argv) > 2:
+        outName = sys.argv[2]
     else:
         print '#No out file name is given'
-        outName = (os.path.basename(SRfileName)).replace('.root','_rcs.root')
+        outName = (os.path.basename(fileName)).replace('.root','_rcs.root')
         print '#> Out file name is', outName
 
     outfile = TFile(outName, "RECREATE")
 
-    if not srfile:
+    if not tfile:
         print "Couldn't open the file"
         exit(0)
 
-    # get hists from files
-    getHistsFromFile(srfile)
-    getHistsFromFile(crfile)
+    samples = ['TT_DiLep','TT_Rest','TTV','WJets']
 
-    # customise hists
-    custHists()
+    for samp in samples:
 
-    # make rcs plots
-    getRcsPlots()
+        _histListSR = []
+        _histListCR = []
+        _histListRcs = []
 
-    canvCRnorm = plotHists('CR',True)
-    canvSRnorm = plotHists('SR',True)
-    canvRcs = plotHists('Rcs')
+        _canvStore = []
+        _histStore = []
 
-    ## wait
-    answ = raw_input("Enter 'q' to exit: ")
+        # get hists from files
+        getHistsFromFile(tfile,samp)
 
-    canvCR = plotHists('CR')
-    canvSR = plotHists('SR')
+        #print _histListCR
+        #print _histListSR
 
-    ## save canvases to file
-    for canv in _canvStore:
-        pdir = 'plots/'
-        canv.SaveAs(pdir+canv.GetName()+'.pdf')
-        canv.Write()
+        # customise hists
+        custHists()
 
-    srfile.Close()
-    crfile.Close()
+        # make rcs plots
+        getRcsPlots()
+
+        canvCRnorm = plotHists('CR',True)
+        canvSRnorm = plotHists('SR',True)
+        canvRcs = plotHists('Rcs')
+
+        if not _batchMode:
+            ## wait
+            answ = raw_input("Enter 'q' to exit: ")
+
+        canvCR = plotHists('CR')
+        canvSR = plotHists('SR')
+
+        ## save canvases
+        pdir = indir
+
+        if not os.path.exists(pdir):
+            os.makedirs(pdir)
+
+        for canv in _canvStore:
+            cname = '/'+samp+'_'+ canv.GetName()+'.pdf'
+            canv.SaveAs(pdir+cname)
+            canv.Write()
+
+    tfile.Close()
     outfile.Close()
