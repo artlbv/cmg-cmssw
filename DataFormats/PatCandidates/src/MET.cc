@@ -195,8 +195,7 @@ double MET::caloMETSumEt() const {
 
 // functions to access to 74X samples ========================================================
 MET::Vector2 MET::shiftedP2_74x(MET::METUncertainty shift, MET::METCorrectionLevel level)  const {
-  std::cout<<"aquu ==> "<<shift<<"  "<<level<<std::endl;
-    if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples \n");
+  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples \n");
     const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ :  uncertaintiesRaw_);
     if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
     if (v.size() == 1) {
@@ -208,8 +207,7 @@ MET::Vector2 MET::shiftedP2_74x(MET::METUncertainty shift, MET::METCorrectionLev
 }
 
 MET::Vector MET::shiftedP3_74x(MET::METUncertainty shift, MET::METCorrectionLevel level)  const {
-  std::cout<<"aquo ==> "<<shift<<"  "<<level<<std::endl;
-    if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples \n");
+  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples \n");
     const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ :  uncertaintiesRaw_);
     if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
     if (v.size() == 1) {
@@ -220,8 +218,7 @@ MET::Vector MET::shiftedP3_74x(MET::METUncertainty shift, MET::METCorrectionLeve
 }
 
 MET::LorentzVector MET::shiftedP4_74x(METUncertainty shift, MET::METCorrectionLevel level)  const {
-  std::cout<<"aqua ==> "<<shift<<"  "<<level<<std::endl;
-    if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples\n");
+  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples\n");
     const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ : uncertaintiesRaw_);
     if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
     if (v.size() == 1) {
@@ -234,8 +231,7 @@ MET::LorentzVector MET::shiftedP4_74x(METUncertainty shift, MET::METCorrectionLe
 }
 
 double MET::shiftedSumEt_74x(MET::METUncertainty shift, MET::METCorrectionLevel level) const {
-  std::cout<<" aqui ==> "<<shift<<"  "<<level<<std::endl;
-    if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples\n");
+  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples\n");
     const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ : uncertaintiesRaw_);
     if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
     if (v.size() == 1) {
