@@ -142,33 +142,32 @@ double MET::shiftedSumEt(MET::METUncertainty shift, MET::METUncertaintyLevel lev
     return sumEt() + v[shift].dsumEt();
 }
 
-
 void MET::setShift(double px, double py, double sumEt, MET::METUncertainty shift, MET::METUncertaintyLevel level) {
   if( level != Calo ) {
     if (level != Type1 && level != Type1p2 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw, Type1 and Type1p2\n");
     std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ : (level == Type1p2 ? uncertaintiesType1p2_ : uncertaintiesRaw_));
     if (shift == MET::METUncertainty::NoShift) {
-      if (v.empty()) { // fresh MET: make size 1, add this
-	v.resize(1);
-	v.back().set(px - this->px(), py - this->py(), sumEt - this->sumEt());
-      } else if (v.size() == 1) {  // only unshifted, and I'm updating it
-	v.back().set(px - this->px(), py - this->py(), sumEt - this->sumEt());
-      } else if (v.size() != MET::METUncertainty::METUncertaintySize) { 
-	// already initialized with something I don't understand
-	throw cms::Exception("Unsupported", "setShift called after the set of uncertainties is not of a supported size (not 0, 1, or METUncertaintySize)\n");
-      } else {
-	// full set of uncertainties, and I'm updating the no-shift one
-	v[shift].set(px - this->px(), py - this->py(), sumEt - this->sumEt());
-      }
+        if (v.empty()) { // fresh MET: make size 1, add this
+            v.resize(1);
+            v.back().set(px - this->px(), py - this->py(), sumEt - this->sumEt());
+        } else if (v.size() == 1) {  // only unshifted, and I'm updating it
+            v.back().set(px - this->px(), py - this->py(), sumEt - this->sumEt());
+        } else if (v.size() != MET::METUncertainty::METUncertaintySize) { 
+            // already initialized with something I don't understand
+            throw cms::Exception("Unsupported", "setShift called after the set of uncertainties is not of a supported size (not 0, 1, or METUncertaintySize)\n");
+        } else {
+            // full set of uncertainties, and I'm updating the no-shift one
+            v[shift].set(px - this->px(), py - this->py(), sumEt - this->sumEt());
+        }
     } else {
-      if (v.empty()) { // fresh MET. make room for all
-	v.resize(METUncertaintySize);
-      } else if (v.size() == 1) { // I had set only the unshifted, so I extend it copying over the existing one
-	v.resize(METUncertaintySize, v.back()); 
-      } else if (v.size() != MET::METUncertainty::METUncertaintySize) { // already initialized with something I don't understand
-	throw cms::Exception("Unsupported", "setShift called after the set of uncertainties is not of a supported size (not 0, 1, or METUncertaintySize)\n");
-      }
-      v[shift].set(px - this->px(), py - this->py(), sumEt - this->sumEt());
+        if (v.empty()) { // fresh MET. make room for all
+            v.resize(METUncertaintySize);
+        } else if (v.size() == 1) { // I had set only the unshifted, so I extend it copying over the existing one
+            v.resize(METUncertaintySize, v.back()); 
+        } else if (v.size() != MET::METUncertainty::METUncertaintySize) { // already initialized with something I don't understand
+            throw cms::Exception("Unsupported", "setShift called after the set of uncertainties is not of a supported size (not 0, 1, or METUncertaintySize)\n");
+        }
+        v[shift].set(px - this->px(), py - this->py(), sumEt - this->sumEt());
     }
   } else {
     caloPackedMet_.set(px, py, sumEt);
@@ -193,58 +192,6 @@ double MET::caloMETSumEt() const {
   return caloPackedMet_.dsumEt();
 }
 
-// functions to access to 74X samples ========================================================
-MET::Vector2 MET::shiftedP2_74x(MET::METUncertainty shift, MET::METCorrectionLevel level)  const {
-  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples \n");
-    const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ :  uncertaintiesRaw_);
-    if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
-    if (v.size() == 1) {
-        if (shift != MET::METUncertainty::NoShift) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type (only central value available)\n");
-        return Vector2{ (px() + v.front().dpx()), (py() + v.front().dpy()) };
-    }
-    Vector2 ret{ (px() + v[shift].dpx()), (py() + v[shift].dpy()) };
-    return ret;
-}
-
-MET::Vector MET::shiftedP3_74x(MET::METUncertainty shift, MET::METCorrectionLevel level)  const {
-  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples \n");
-    const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ :  uncertaintiesRaw_);
-    if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
-    if (v.size() == 1) {
-        if (shift != MET::METUncertainty::NoShift) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type (only central value available)\n");
-        return Vector(px() + v.front().dpx(), py() + v.front().dpy(), 0);
-    }
-    return Vector(px() + v[shift].dpx(), py() + v[shift].dpy(), 0);
-}
-
-MET::LorentzVector MET::shiftedP4_74x(METUncertainty shift, MET::METCorrectionLevel level)  const {
-  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples\n");
-    const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ : uncertaintiesRaw_);
-    if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
-    if (v.size() == 1) {
-        if (shift != MET::METUncertainty::NoShift) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type (only central value available)\n");
-        double x = px() + v.front().dpx(), y = py() + v.front().dpy();
-        return LorentzVector(x, y, 0, std::hypot(x,y));
-    }
-    double x = px() + v[shift].dpx(), y = py() + v[shift].dpy();
-    return LorentzVector(x, y, 0, std::hypot(x,y));
-}
-
-double MET::shiftedSumEt_74x(MET::METUncertainty shift, MET::METCorrectionLevel level) const {
-  if (level != Type1 && level != Raw) throw cms::Exception("Unsupported", "MET uncertainties only supported for Raw and Type1 in 74X samples\n");
-    const std::vector<PackedMETUncertainty> &v = (level == Type1 ? uncertaintiesType1_ : uncertaintiesRaw_);
-    if (v.empty()) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type\n");
-    if (v.size() == 1) {
-        if (shift != MET::METUncertainty::NoShift) throw cms::Exception("Unsupported", "MET uncertainties not available for the specified correction type (only central value available)\n");
-        return sumEt() + v.front().dsumEt();
-    }
-    return sumEt() + v[shift].dsumEt();
-}
-
-
-
-
->>>>>>> cd0f58f... update MET correction tool: PhotonES, automatic function, preparatino for MVA MET
 #include "DataFormats/PatCandidates/interface/libminifloat.h"
 
 void MET::PackedMETUncertainty::pack() {

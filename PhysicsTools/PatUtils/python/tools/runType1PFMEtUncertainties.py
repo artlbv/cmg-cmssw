@@ -279,7 +279,7 @@ class RunType1PFMEtUncertainties(JetMEtUncertaintyTools):
         unclEnMETcorrectionsSrcs = [
             [ 'pfCandMETcorr' + postfix, [ '' ] ],
             [ 'patPFMetT1T2Corr' + postfix, [ 'type2', 'offset' ] ],
-            [ 'patPFJetMETtype2Corr' + postfix, [ 'type2' ] ],
+            [ 'patPFMetT2Corr' + postfix, [ 'type2' ] ],
             ]
 
         unclEnMETcorrections = {}

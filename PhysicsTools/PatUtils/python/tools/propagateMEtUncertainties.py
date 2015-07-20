@@ -178,9 +178,9 @@ def createPatMETModules(process, metType, metPatSequence, applyT1Cor=False,
 
     #Type0 for pfT1 and pfT1T2 MET
     if metType == "PF":
-        patMetCorrectionsCentralValue = [ cms.InputTag('patPFJetMETtype1p2Corr' + postfix, 'type1') ]
+        patMetCorrectionsCentralValue = [ cms.InputTag('patPFMetT1T2Corr' + postfix, 'type1') ]
         if applyT0pcCor :
-            patMetCorrectionsCentralValue.extend([ cms.InputTag('patPFMETtype0Corr' + postfix) ])
+            patMetCorrectionsCentralValue.extend([ cms.InputTag('patPFMetT0Corr' + postfix) ])
 
 
     # compute XY shift correction if asked, and configure the tool accordingly

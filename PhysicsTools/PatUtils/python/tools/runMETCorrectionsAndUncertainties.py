@@ -937,8 +937,8 @@ class RunMETCorrectionsAndUncertainties(ConfigToolBase):
                                                      )
                 
                 baseName = self.removePostfix(srcUnclEnMETcorr[0], postfix)
-              
                 moduleUnclEnMETcorrName = baseName+"UnclusteredEn"+var+postfix
+                print "supername =========================",moduleUnclEnMETcorrName, metModName
                 setattr(process, moduleUnclEnMETcorrName, moduleUnclEnMETcorr)
                 metUncSequence += moduleUnclEnMETcorr
                 unclEnMETcorrections = ([ cms.InputTag(moduleUnclEnMETcorrName, instanceLabel)
