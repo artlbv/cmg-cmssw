@@ -11,6 +11,11 @@ _histListSR = []
 _histListCR = []
 _histListRcs = []
 
+_histListFrc = []
+
+_histListTotalCR = []
+_histListTotalSR = []
+
 _canvStore = []
 _histStore = []
 
@@ -22,17 +27,26 @@ def getHistsFromFile(tfile, sample = 'background'):
         hist = key.ReadObj()
 
         if 'TH1' in str(type(hist)):
+
+            hname = hist.GetName()
+
             ## skip inclusive ST
-            if 'ST_'+sample == hist.GetName(): continue
-            #if 'background' in hist.GetName():
-            if sample in hist.GetName():
-                hname = hist.GetName()
+            if 'ST_'+sample == hname: continue
+            if sample in hname:
 
                 ## determine SR or CR
                 if 'SR' in hname:
                     _histListSR.append(hist.Clone(hname))
                 elif 'CR' in hname:
                     _histListCR.append(hist.Clone(hname))
+            # background
+            elif 'background' in hname:
+                ## determine SR or CR
+                if 'SR' in hname:
+                    _histListTotalSR.append(hist.Clone(hname))
+                elif 'CR' in hname:
+                    _histListTotalCR.append(hist.Clone(hname))
+
     return 1
 
 def getRcsPlots():
@@ -47,6 +61,29 @@ def getRcsPlots():
         _histListRcs.append(histRcs)
 
     return 1
+
+
+def getFractionPlots(flag = 'CR'):
+
+    if flag == 'CR':
+        histList = _histListCR
+        histListTotal = _histListTotalCR
+    elif flag == 'SR':
+        histList = _histListSR
+        histListTotal = _histListTotalCR
+
+    for indx,hist in enumerate(histList):
+
+        hname = (hist.GetName()).replace(flag,'Frc')
+
+        histFrc = hist.Clone(hname)
+
+        histFrc.Divide(histListTotal[indx])
+
+        _histListFrc.append(histFrc)
+
+    return 1
+
 
 def setColors(histList):
 
@@ -67,9 +104,10 @@ def setColors(histList):
         hist.SetMarkerColor(colorList[ind])
         hist.SetLineStyle(2)
 
+
 def custHists():
     ## loop over all saved hists
-    for hist in _histListCR+_histListSR:
+    for hist in _histListCR+_histListSR+_histListTotalCR+_histListTotalSR:
 
         hname = hist.GetName()
         ## common settings
@@ -79,7 +117,7 @@ def custHists():
         hist.SetMarkerStyle(0)
 
         ## rebin
-        #hist.Rebin(2)
+        hist.Rebin(2)
 
         htitle = ''
         ## NJ bins
@@ -91,8 +129,6 @@ def custHists():
             htitle = 'Nj #in [6,8] '
         elif 'NJ9i'in hname:
             htitle = 'Nj #geq 9 '
-
-        #if 'NJ' in hname and 'HT' in hname: htitle += '; '
 
         ## HT bins
         if 'HT500750'in hname:
@@ -112,6 +148,7 @@ def custHists():
         elif 'HT750'in hname:
             htitle += 'HT > 750'
 
+
         hist.SetTitle(htitle)
 
         print hname, htitle
@@ -130,17 +167,24 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
     elif flag == 'Rcs':
         histList = _histListRcs
         plotOpt += 'e1'
+    elif flag == 'Frc':
+        histList = _histListFrc
+        plotOpt += 'e1'
+
 
     hname = histList[0].GetName()
     varName = hname[:hname.find('_')]
 
+    suffix = hname[hname.find(flag):]
+    samp = suffix[suffix.find('_')+1:]
+
     # define Canvas (plot) name
-    cname = 'canv_'+ varName + '_' + flag
+    cname = 'canv_'+ varName + '_' + suffix#flag + '_' + samp
 
     if doNorm == True:
         cname += 'Norm'
 
-    canv = TCanvas(cname,varName+' in different bins for '+ flag,800,800)
+    canv = TCanvas(cname,varName+' in different bins for '+ suffix,800,800)
 
     ## clone hists for this plot
     histCloneList = []
@@ -187,26 +231,20 @@ def plotHists(flag = 'CR', doNorm = False, plotOpt = 'histe1'):
 
 
     # Y axis mod
-    if flag != 'Rcs':
+    if flag == 'Rcs':
+        first.GetYaxis().SetTitle("R_{CS}")
+        first.GetYaxis().SetRangeUser(0,0.79)
+        #first.GetYaxis().SetRangeUser(0,2)
+
+    elif flag == 'Frc':
+        first.GetYaxis().SetTitle("Fraction")
+        first.GetYaxis().SetRangeUser(0,1.5)
+    else:
         canv.SetLogy()
 
         if doNorm:
             first.GetYaxis().SetTitle("a.u.")
             first.GetYaxis().SetRangeUser(0.001,0.8)
-    else:
-        first.GetYaxis().SetTitle("R_{CS}")
-
-        # fix Y axis for different samples:
-        if 'TT_DiLep' in hname:
-            first.GetYaxis().SetRangeUser(0,2.9)
-        elif 'TT_Rest' in hname:
-            first.GetYaxis().SetRangeUser(0,0.29)
-        elif 'WJets' in hname:
-            first.GetYaxis().SetRangeUser(0,0.29)
-        elif 'TTV' in hname:
-            first.GetYaxis().SetRangeUser(0,0.79)
-        else:
-            first.GetYaxis().SetRangeUser(0,0.79)
 
     _canvStore.append(canv)
     return canv
@@ -243,16 +281,21 @@ if __name__ == "__main__":
         print "Couldn't open the file"
         exit(0)
 
-    samples = ['TT_DiLep','TT_Rest','TTV','WJets','SingleT']#,'DY']
-    samples += ['background']
+    samples = ['TT_DiLep','TT_Rest','TTV','WJets','DY','SingleT']
     #samples = ['TT_DiLep','TTV']
     #samples = ['TT_Rest','WJets']
 
     for samp in samples:
 
+
         _histListSR = []
         _histListCR = []
         _histListRcs = []
+
+        _histListFrc = []
+
+        _histListTotalCR = []
+        _histListTotalSR = []
 
         _canvStore = []
         _histStore = []
@@ -267,15 +310,15 @@ if __name__ == "__main__":
         custHists()
 
         # make rcs plots
-        getRcsPlots()
+        getFractionPlots()
 
         #canvCRnorm = plotHists('CR',True)
         #canvSRnorm = plotHists('SR',True)
-        canvRcs = plotHists('Rcs')
+        canvRcs = plotHists('Frc')
 
         if not _batchMode:
             ## wait
-            answ = raw_input("Enter 'q' to exit: ")
+            answ = raw_input("Enter to continue or 'q' to exit: ")
             if 'q' in answ: exit(0)
 
         #canvCR = plotHists('CR')
@@ -283,9 +326,6 @@ if __name__ == "__main__":
 
         ## save canvases
         pdir = indir
-
-        if not os.path.exists(pdir):
-            os.makedirs(pdir)
 
         extList = ['.pdf','.png']
         for canv in _canvStore:
