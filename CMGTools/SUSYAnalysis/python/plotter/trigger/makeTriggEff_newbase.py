@@ -1,23 +1,11 @@
 #!/usr/bin/python
 
 import sys
-import os
 
-from ROOT import *
 from array import array
+from ROOT import *
 
-gStyle.SetOptTitle(0)
-gStyle.SetOptStat(0)
-gStyle.SetPadTopMargin(0.05)
-
-# CMS lumi text
-import CMS_lumi
-CMS_lumi.writeExtraText = 1
-iPos = 0
-if( iPos==0 ): CMS_lumi.relPosX = 0.12
-
-
-
+from triggTools import *
 
 # global storages
 _canvStore = []
@@ -27,107 +15,6 @@ _hEffStore = {}
 _fitrStore = []
 
 _colorList = [2,8,4,9,7,3,6] + range(10,50)
-
-def varToLabel(var):
-
-    label = var
-
-    if 'pt' in var:
-        label = 'p_{T}(lep)'
-    elif 'MET' in var:
-        label = 'E_{T}^{miss}'
-    elif 'T' in var:
-        label = var.replace('T','_{T}')
-
-    return label
-
-def getLegend(pos = 'ne'):
-    if pos == 'ne':
-        leg = TLegend(0.4,0.7,0.9,0.9)
-    elif pos == 'log':
-        leg = TLegend(0.6,0.8,0.99,0.99)
-    elif pos == 'roc':
-        leg = TLegend(0.15,0.2,0.7,0.4)
-    elif pos == 'fit':
-        leg = TLegend(0.15,0.75,0.5,0.9)
-
-    leg.SetBorderSize(1)
-    leg.SetTextFont(62)
-    leg.SetTextSize(0.03321678)
-    leg.SetLineColor(1)
-    leg.SetLineStyle(1)
-    leg.SetLineWidth(1)
-    leg.SetFillColor(0)
-    leg.SetFillStyle(1001)
-
-    return leg
-
-def turnon_func(x, par):
-
-    halfpoint = par[0]
-    #slope = max(par[1],0.00001)
-    width = max(par[1],1)
-    plateau = par[2]
-
-    #offset = par[3]
-    #plateau = 1.0
-    offset = 0
-
-    pt = TMath.Max(x[0],0.000001)
-
-    arg = 0
-    #print pt, halfpoint, width
-    #arg = (pt - halfpoint)/(TMath.Sqrt(pt)*slope)
-    arg = (pt - halfpoint) / (width * TMath.Sqrt(2))
-
-    fitval = offset + plateau * 0.5 * (1 + TMath.Erf(arg))
-    #fitval = offset + plateau * TMath.Erfc(arg)
-
-    return fitval
-
-def textBox():
-
-    pt = TPaveText(.05,.1,.95,.8);
-
-    pt.AddText("A TPaveText can contain severals line of text.");
-    pt.AddText("They are added to the pave using the AddText method.");
-    pt.AddLine(.0,.5,1.,.5);
-    pt.AddText("Even complex TLatex formulas can be added:");
-    pt.AddText("F(t) = #sum_{i=-#infty}^{#infty}A(i)cos#[]{#frac{i}{t+i}}");
-
-    return pt
-
-
-def cutsToString(cutList):
-
-    cutstr = ''
-
-    for i, cut in enumerate(cutList):
-        cutstr += cut
-
-        if i != len(cutList)-1: cutstr += ' && '
-
-    return cutstr
-
-def varBinSize():
-
-    bins = '[10,15,20,50,80]'
-    edges = [ float(f) for f in bins[1:-1].split(",") ]
-
-    histo = ROOT.TH1F("dummy","dummy",len(edges)-1,array('f',edges))
-
-    print edges
-
-    return histo
-
-def setColors(histList):
-
-    #    colorList = [3,2,ROOT.kGreen-2,1]
-    colorList = [1,2,3,4]
-
-    for ind,hist in enumerate(histList):
-        hist.SetLineColor(colorList[ind])
-        hist.SetMarkerColor(colorList[ind])
 
 def getHistsFromTree(tree, var = 'MET', refTrig = '', cuts = '', testTrig = '', maxEntries = -1, lumi = -1):
 
@@ -154,10 +41,7 @@ def getHistsFromTree(tree, var = 'MET', refTrig = '', cuts = '', testTrig = '', 
         refName = 'PreSel'
 
     ## name replacement
-    refName = refName.replace('SingleMu','IsoMu27')
-    refName = refName.replace('SingleEl','El32')
-    refName = refName.replace('HTMET','HT350MET120')
-
+    refName = renameTrig(refName)
     rname = histPrefix + refName
 
     cname = var + '_' + refName
@@ -267,6 +151,8 @@ def getHistsFromTree(tree, var = 'MET', refTrig = '', cuts = '', testTrig = '', 
             print trig
         else:
             trigName = trig.replace('HLT_','')
+
+        trigName = renameTrig(trigName)
 
         hname = 'h' + var + '_' + trigName
 
@@ -493,9 +379,6 @@ def plotEff(histList, var = 'HT', doFit = False):
 
 def makeEffPlots(tree, lumi = -1, maxEntries = -1, doFit = False, varList = [], refTrig = '', testTrig = [], cuts = ''):
 
-    #print 'Split cuts:', cuts.split('&&')
-    #print 'ReSplit cuts:', cutsToString(cuts.split('&&'))
-
     # lumi dir
     if lumi == 0:
         # unscaled MC counts
@@ -512,59 +395,24 @@ def makeEffPlots(tree, lumi = -1, maxEntries = -1, doFit = False, varList = [], 
     for trig in testTrig:
         suffix +=  '_' + trig.replace('||','OR')
 
+    # final output dir:
+    lumiDir = 'plots/2d/' + lumiDir
+
+    print '## Going to save plots to', lumiDir
+
     for var in varList:
-        #for ref in refTrig[:1]:
 
         histList = getHistsFromTree(tree,var,refTrig, cuts, testTrig, maxEntries, lumi)
         plotEff(histList, var, doFit)
-        saveCanvases(lumiDir,suffix)
+        saveCanvases(_canvStore, lumiDir,suffix, _batchMode)
+
+        # empty stores for further use
+        del _canvStore[:]
+        _histStore.clear()
+        _hEffStore.clear()
+        del _fitrStore[:]
 
     return 1
-
-def saveCanvases(pdir = '', extraName = ''):
-
-    ## save canvases to file
-    extList = ['.png','.pdf']
-
-    pdir = 'plots/' + pdir
-    prefix = ''
-    suffix = '_' + extraName
-
-    ## wait
-    if not _batchMode:
-        answ = raw_input("'Enter' to proceed (or 'q' to exit): ")
-        if 'q' in answ: exit(0)
-
-
-    cdir = os.path.dirname(pdir + prefix)
-    print 'Canvas dir is', cdir
-
-    if not os.path.exists(cdir):
-        os.makedirs(cdir)
-
-    cdir += '/'
-
-    # make output file
-    outName = cdir + 'plots_'+ extraName +'.root'
-    ofile = TFile(outName,'RECREATE')
-
-    for canv in _canvStore:
-        for ext in extList:
-            cname = canv.GetName().replace('Lep_pt','LepPt')
-            cname = cdir + cname+ suffix + ext
-            canv.SaveAs(cname)
-        canv.Write()
-
-    # empty stores for further use
-    del _canvStore[:]
-    _histStore.clear()
-    _hEffStore.clear()
-    del _fitrStore[:]
-
-    ofile.Close()
-
-    return 1
-
 
 if __name__ == "__main__":
 
@@ -583,17 +431,6 @@ if __name__ == "__main__":
         exit(0)
 
     tfile  = TFile(fileName, "READ")
-
-    '''
-    if len(sys.argv) > 2:
-        outName = sys.argv[2]
-    else:
-        print '#No out file name is given'
-        outName = (os.path.basename(fileName)).replace('.root','_plots.root')
-        print '#> Out file name is', outName
-
-    outfile = TFile(outName, "RECREATE")
-    '''
 
     if not tfile:
         print "Couldn't open the file"
@@ -614,7 +451,7 @@ if __name__ == "__main__":
     # do efficiency fit
     doFit = True
     # luminosity: 0 takes MC counts, >0 is data, <0 is for MC scaling
-    lumi = 43
+    lumi = 0
 
     '''
     #############
@@ -745,10 +582,8 @@ if __name__ == "__main__":
     ###################
     ###################
 
-    dataSet = 'SingleMu'
     doFit = True
 
-    #if dataSet == 'SingleEl':
     if 'SingleEl' in fileName:
         ## Electrons
         lumi = 43.1 # SingleEl RunB
@@ -764,7 +599,6 @@ if __name__ == "__main__":
         cuts = 'nEl >= 1 && Lep_pt > 25 && MET  > 200'
         makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
 
-    #elif dataSet == 'SingleMu':
     elif 'SingleMu' in fileName:
         ## Muons
         lumi = 38.8 # SingleMu RunB
