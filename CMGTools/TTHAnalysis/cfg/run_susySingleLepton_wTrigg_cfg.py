@@ -175,7 +175,8 @@ elif test=="data":
         #from CMGTools.RootTools.samples.samples_13TeV_Data import *
         #selectedComponents = [ privEGamma2015A ]
 	from CMGTools.RootTools.samples.samples_13TeV_DATA2015 import *
-	selectedComponents = [ SingleElectron_Run2015B ]
+	#selectedComponents = [ SingleElectron_Run2015B ]
+	selectedComponents = [ SingleMu_Run2015B , SingleMuon_Run2015B ]
 
 	eventFlagsAna.processName = 'HLT'
 	jetAna.recalibrateJets = False
@@ -184,10 +185,9 @@ elif test=="data":
 		comp.isMC = False
 		comp.isData = True
 
-
         for comp in selectedComponents:
-                comp.splitFactor = 1
-                comp.fineSplitFactor = 10
+                comp.splitFactor = len(comp.files)
+                comp.fineSplitFactor = 1
                 #comp.files = comp.files[:1]
 
 

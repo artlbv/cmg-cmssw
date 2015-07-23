@@ -65,17 +65,18 @@ def getHistsFromTree(tree, var = 'MET', refTrig = '', cuts = '', testTrig = '', 
     nbins = 50
 
     varBinSize = False
+    pt_bins = range(0,30,2) + range(30,70,5) + range(70,150,10) + range (150,250,25) + range(250,350,50)
+    met_bins = range(0,200,10) + range(200,400,50) + range(400,700,100)
+    ht_bins = range(0,200,10) + range(200,400,50) + range(400,1000,100) + range(1000,1750,250)
 
     if var == 'MET':
         hRef = TH1F(rname,htitle,nbins,0,1000)
     elif var == 'HT':
         hRef = TH1F(rname,htitle,nbins,0,3000)
     elif 'pt' in var:
-        #xbins = range(5,25,1) + range(25,70,5) + range(70,150,10) + range (150,225,25)#[10,20,30,40,60,80,100,150,200]
-        xbins = range(6,30,2) + range(30,70,5) + range(70,150,10) + range (150,225,25)
         varBinSize = True
 
-        hRef = TH1F(rname,htitle,len(xbins)-1,array('f',xbins))
+        hRef = TH1F(rname,htitle,len(pt_bins)-1,array('f',pt_bins))
         #hRef = TH1F(rname,htitle,nbins,0,200)
     elif 'eta' in var:
         hRef = TH1F(rname,htitle,nbins,-2.5,2.5)
@@ -593,11 +594,19 @@ if __name__ == "__main__":
 
         varList = ['MET']
         cuts = 'nEl >= 1 && Lep_pt > 25 && HT  > 500'
-        makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+        #makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
 
         varList = ['HT']
         cuts = 'nEl >= 1 && Lep_pt > 25 && MET  > 200'
+        #makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+
+        refTrig = 'IsoEle32'
+        testTrig = ['ElNoIso']
+
+        varList = ['Lep_pt']
+        cuts = 'nEl >= 1 && Lep_pt > 5'
         makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+
 
     elif 'SingleMu' in fileName:
         ## Muons
@@ -608,11 +617,31 @@ if __name__ == "__main__":
 
         varList = ['MET']
         cuts = 'nMu >= 1 && Lep_pt > 25 && HT  > 500'
-        makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+        #makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
 
         varList = ['HT']
         cuts = 'nMu >= 1 && Lep_pt > 25 && MET  > 200'
+        #makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+
+        refTrig = 'IsoMu27'
+        testTrig = ['Mu50NoIso']
+
+        varList = ['Lep_pt']
+        cuts = 'nMu >= 1 && Lep_pt > 25'
         makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+
+    elif 'JetHT' in fileName:
+
+        # Jet + HT triggers
+        lumi = 44.8
+
+        refTrig = ''#IsoEle32'
+        testTrig = ['IsoEle32']
+
+        varList = ['Lep_pt']
+        cuts = 'nEl >= 1 && Lep_pt > 5'
+        makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+
     else:
         print 'Nothing to draw for this file!'
 

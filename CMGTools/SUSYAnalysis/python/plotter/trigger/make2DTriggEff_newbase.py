@@ -68,7 +68,6 @@ def get2DHistsFromTree(tree, tvar = ('MET','HT'), refTrig = '', cuts = '', testT
     # make hist
     nbins = 50
 
-    varBinSize = False
     pt_bins = range(0,30,2) + range(30,70,5) + range(70,150,10) + range (150,250,25) + range(250,350,50)
     met_bins = range(0,200,10) + range(200,400,50) + range(400,700,100)
     ht_bins = range(0,200,10) + range(200,400,50) + range(400,1000,100) + range(1000,1750,250)
@@ -536,13 +535,13 @@ if __name__ == "__main__":
         ## Muons
         cuts = 'nMu >= 1 && Lep_pt > 5 && HT > 400'
         refTrig = ''
-        testTrig = ['Mu50NoIso||MuHT350MET70']#,'Mu50NoIso','MuHT400MET70']
+        testTrig = ['Mu50NoIso||MuHT350MET70','Mu50NoIso','MuHT350MET70']
         make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
         ## Electrons
         cuts = 'nEl >= 1 && Lep_pt > 5 && HT > 400'
         refTrig = ''#HT350'
-        testTrig = ['ElNoIso||EleHT350MET70']#,'ElNoIso','EleHT400MET70']
+        testTrig = ['ElNoIso||EleHT350MET70','ElNoIso','EleHT350MET70']
         make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
     else:
         print 'Nothing to draw for this file!'
