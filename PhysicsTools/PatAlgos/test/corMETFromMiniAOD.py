@@ -27,9 +27,8 @@ process.maxEvents = cms.untracked.PSet(
 
 ### =====================================================================================================
 usePrivateSQlite =True
-
-from Configuration.AlCa.GlobalTag_condDBv2 import GlobalTag
-process.GlobalTag.globaltag = 'MCRUN2_74_V9'   # for Simulation #same globalTag
+from Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff import *
+process.GlobalTag.globaltag = 'MCRUN2_74_v9'
 
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
@@ -63,15 +62,27 @@ process.source = cms.Source("PoolSource",
 
 from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
-#default configuration for miniAOD reprocessing
-runMetCorAndUncFromMiniAOD(process)
+#default configuration for miniAOD reprocessing, change the isData flag to run on data
+runMetCorAndUncFromMiniAOD(process, isData=False)
+
+### -------------------------------------------------------------------
+### the lines below remove the L2L3 residual uncertainties when processing data
+### -------------------------------------------------------------------
+process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+### ------------------------------------------------------------------
+
 
 process.MINIAODSIMoutput = cms.OutputModule("PoolOutputModule",
     compressionLevel = cms.untracked.int32(4),
     compressionAlgorithm = cms.untracked.string('LZMA'),
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
     outputCommands = cms.untracked.vstring( "keep *_slimmedMETs_*_*",
-                                            "keep *_patPFMetT1Txy_*_*"
+                                            "keep *_patPFMetT1Txy_*_*",
                                             ),
     fileName = cms.untracked.string('corMETMiniAOD.root'),
     dataset = cms.untracked.PSet(
