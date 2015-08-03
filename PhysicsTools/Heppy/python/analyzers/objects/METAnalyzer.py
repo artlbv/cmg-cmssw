@@ -212,6 +212,13 @@ class METAnalyzer( Analyzer ):
 #          print 'after JEC', self.cfg_ana.collectionPostFix, self.met.px(),self.met.py(), 'deltaMetFromJEC'+self.cfg_ana.jetAnalyzerCalibrationPostFix, deltaMetJEC
 
         setattr(event, "met"+self.cfg_ana.collectionPostFix, self.met)
+        genMET = self.met.genMET()
+        if genMET:
+          setattr(event, "met_genPt"+self.cfg_ana.collectionPostFix, genMET.pt())
+          setattr(event, "met_genPhi"+self.cfg_ana.collectionPostFix, genMET.phi())
+        else:
+          setattr(event, "met_genPt"+self.cfg_ana.collectionPostFix, float('nan'))
+          setattr(event, "met_genPhi"+self.cfg_ana.collectionPostFix, float('nan'))
         if self.cfg_ana.doMetNoPU: setattr(event, "metNoPU"+self.cfg_ana.collectionPostFix, self.metNoPU)
         setattr(event, "met_sig"+self.cfg_ana.collectionPostFix, self.met_sig)
         setattr(event, "met_sumet"+self.cfg_ana.collectionPostFix, self.met_sumet)
