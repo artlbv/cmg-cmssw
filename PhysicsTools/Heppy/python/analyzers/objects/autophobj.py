@@ -29,7 +29,7 @@ particleType = NTupleObjectType("particle", baseObjectTypes = [ fourVectorType ]
     NTupleVariable("pdgId",   lambda x : x.pdgId(), int),
 ])
 
-weightsInfoType = NTupleObjectType("WeightsInfo", variables = [
+weightsInfoType = NTupleObjectType("WeightsInfo", mcOnly=True, variables = [
     NTupleVariable("id",   lambda x : x.id, int),
     NTupleVariable("wgt",   lambda x : x.wgt),
 ])
@@ -145,8 +145,8 @@ isoTrackType = NTupleObjectType("isoTrack",  baseObjectTypes = [ particleType ],
 photonType = NTupleObjectType("gamma", baseObjectTypes = [ particleType ], variables = [
     NTupleVariable("idCutBased", lambda x : x.idCutBased, int, help="1,2,3 if the gamma passes the loose, medium, tight WP of PhotonCutBasedID"),
     NTupleVariable("hOverE",  lambda x : x.hOVERe(), float, help="hoverE for photons"),
-    NTupleVariable("r9",  lambda x : x.r9(), float, help="r9 for photons"),
-    NTupleVariable("sigmaIetaIeta",  lambda x : x.sigmaIetaIeta(), float, help="sigmaIetaIeta for photons"),
+    NTupleVariable("r9",  lambda x : x.full5x5_r9(), float, help="r9 for photons"),
+    NTupleVariable("sigmaIetaIeta",  lambda x : x.full5x5_sigmaIetaIeta(), float, help="sigmaIetaIeta for photons"),
     #NTupleVariable("chHadIso",  lambda x : x.chargedHadronIso(), float, help="chargedHadronIsolation for photons"),
     #NTupleVariable("neuHadIso",  lambda x : x.neutralHadronIso(), float, help="neutralHadronIsolation for photons"),
     #NTupleVariable("phIso",  lambda x : x.photonIso(), float, help="gammaIsolation for photons"),
@@ -171,14 +171,17 @@ jetType = NTupleObjectType("jet",  baseObjectTypes = [ fourVectorType ], variabl
     NTupleVariable("mcPt",   lambda x : x.mcJet.pt() if getattr(x,"mcJet",None) else 0., mcOnly=True, help="p_{T} of associated gen jet"),
     NTupleVariable("mcFlavour", lambda x : x.partonFlavour(), int,     mcOnly=True, help="parton flavour (physics definition, i.e. including b's from shower)"),
     NTupleVariable("mcMatchId",  lambda x : getattr(x, 'mcMatchId', -99), int, mcOnly=True, help="Match to source from hard scatter (pdgId of heaviest particle in chain, 25 for H, 6 for t, 23/24 for W/Z), zero if non-prompt or fake"),
+    NTupleVariable("corr_JECUp",  lambda x : getattr(x, 'corrJECUp', -99), float, mcOnly=True, help=""),
+    NTupleVariable("corr_JECDown",  lambda x : getattr(x, 'corrJECDown', -99), float, mcOnly=True, help=""),
+    NTupleVariable("corr",  lambda x : getattr(x, 'corr', -99), float, mcOnly=True, help=""),
 ])
 jetTypeExtra = NTupleObjectType("jetExtra",  baseObjectTypes = [ jetType ], variables = [
     NTupleVariable("area",   lambda x : x.jetArea(), help="Catchment area of jet"),
     # QG variables:
-    NTupleVariable("qgl",   lambda x : getattr(x,'qgl', 0) , float, mcOnly=False,help="QG Likelihood"),
-    NTupleVariable("ptd",   lambda x : getattr(x,'ptd', 0), float, mcOnly=False,help="QG input variable: ptD"),
-    NTupleVariable("axis2",   lambda x : getattr(x,'axis2', 0) , float, mcOnly=False,help="QG input variable: axis2"),
-    NTupleVariable("mult",   lambda x : getattr(x,'mult', 0) , int, mcOnly=False,help="QG input variable: total multiplicity"),
+    NTupleVariable("qgl",   lambda x :x.qgl() , float, mcOnly=False,help="QG Likelihood"),
+    NTupleVariable("ptd",   lambda x : getattr(x.computeQGvars(),'ptd', 0), float, mcOnly=False,help="QG input variable: ptD"),
+    NTupleVariable("axis2",   lambda x : getattr(x.computeQGvars(),'axis2', 0) , float, mcOnly=False,help="QG input variable: axis2"),
+    NTupleVariable("mult",   lambda x : getattr(x.computeQGvars(),'mult', 0) , int, mcOnly=False,help="QG input variable: total multiplicity"),
     NTupleVariable("partonId", lambda x : getattr(x,'partonId', 0), int,     mcOnly=True, help="parton flavour (manually matching to status 23 particles)"),
     NTupleVariable("partonMotherId", lambda x : getattr(x,'partonMotherId', 0), int,     mcOnly=True, help="parton flavour (manually matching to status 23 particles)"),
     NTupleVariable("nLeptons",   lambda x : len(x.leptons) if  hasattr(x,'leptons') else  0 , float, mcOnly=False,help="Number of associated leptons"),
@@ -191,9 +194,9 @@ jetTypeExtra = NTupleObjectType("jetExtra",  baseObjectTypes = [ jetType ], vari
   
 metType = NTupleObjectType("met", baseObjectTypes = [ fourVectorType ], variables = [
     NTupleVariable("sumEt", lambda x : x.sumEt() ),
-    NTupleVariable("genPt",  lambda x : x.genMET().pt() , mcOnly=True ),
-    NTupleVariable("genPhi", lambda x : x.genMET().phi(), mcOnly=True ),
-    NTupleVariable("genEta", lambda x : x.genMET().eta(), mcOnly=True ),
+#    NTupleVariable("genPt",  lambda x : x.genMET().pt() , mcOnly=True ),
+#    NTupleVariable("genPhi", lambda x : x.genMET().phi(), mcOnly=True ),
+#    NTupleVariable("genEta", lambda x : x.genMET().eta(), mcOnly=True ),
 ])
 
 ##------------------------------------------  
@@ -215,5 +218,14 @@ genParticleWithAncestryType = NTupleObjectType("genParticleWithAncestry", baseOb
 ])
 genParticleWithLinksType = NTupleObjectType("genParticleWithLinks", baseObjectTypes = [ genParticleWithAncestryType ], mcOnly=True, variables = [
     NTupleVariable("motherIndex", lambda x : x.motherIndex, int, help="index of the mother in the generatorSummary")
+])
+genTauWithLinksExtrasType = NTupleObjectType("genTauWithLinksType", baseObjectTypes = [ genParticleWithAncestryType ], mcOnly=True, variables = [
+    NTupleVariable("MEx", lambda x : x.MEx, float, help="neutrino x momentum from gen-tau"),
+    NTupleVariable("MEy", lambda x : x.MEy, float, help="neutrino y momentum from gen-tau"),
+    NTupleVariable("nNuE", lambda x : x.nNuE, float, help="nuE multiplicity in tau decay"),
+    NTupleVariable("nNuMu", lambda x : x.nNuMu, float, help="nuMu multiplicity in tau decay"),
+    NTupleVariable("nNuTau", lambda x : x.nNuTau, float, help="nuTau multiplicity in tau decay"),
+    NTupleVariable("MEpar", lambda x : x.MEpar, float, help="neutrino momentum from gen-tau, parallel to gen-tau"),
+    NTupleVariable("MEperp", lambda x : x.MEperp, float, help="neutrino momentum from gen-tau, perp. to gen-tau"),
 ])
 
