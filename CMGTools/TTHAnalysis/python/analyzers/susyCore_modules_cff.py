@@ -340,14 +340,13 @@ ttHHeavyFlavourHadronAna = cfg.Analyzer(
 )
 
 
-
 metAna = cfg.Analyzer(
     METAnalyzer, name="metAnalyzer",
     metCollection     = "slimmedMETs",
     noPUMetCollection = "slimmedMETs",    
     copyMETsByValue = False,
     doTkMet = False,
-    doMetNoPU = True,
+    doMetNoPU = False,
     doMetNoMu = False,
     doMetNoEle = False,
     doMetNoPhoton = False,
@@ -357,6 +356,24 @@ metAna = cfg.Analyzer(
     candidatesTypes='std::vector<pat::PackedCandidate>',
     dzMax = 0.1,
     collectionPostFix = "",
+    )
+
+metAnaDef = cfg.Analyzer(
+    METAnalyzer, name="metAnalyzerDef",
+    metCollection     = ("slimmedMETs","", "PAT"),
+    noPUMetCollection = ("slimmedMETs","", "PAT"),    
+    copyMETsByValue = True,
+    doTkMet = False,
+    doMetNoPU = False,
+    doMetNoMu = False,
+    doMetNoEle = False,
+    doMetNoPhoton = False,
+    recalibrate = False,
+    jetAnalyzerCalibrationPostFix = "",
+    candidates='packedPFCandidates',
+    candidatesTypes='std::vector<pat::PackedCandidate>',
+    dzMax = 0.1,
+    collectionPostFix = "Def",
     )
 
 # Core Event Analyzer (computes basic quantities like HT, dilepton masses)
@@ -406,6 +423,7 @@ susyCoreSequence = [
     jetAna,
     #ttHFatJetAna,  # out of core sequence for now
     #ttHSVAna, # out of core sequence for now
+    metAnaDef,
     metAna,
     ttHCoreEventAna,
     #ttHJetMETSkim

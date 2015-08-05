@@ -1,6 +1,7 @@
 from PhysicsTools.Heppy.analyzers.core.Analyzer import Analyzer
 from PhysicsTools.Heppy.analyzers.core.AutoHandle import AutoHandle
 from PhysicsTools.Heppy.physicsutils.genutils import isNotFromHadronicShower, realGenMothers, realGenDaughters
+from math import cos, sin
 
 def interestingPdgId(id,includeLeptons=False):        
     id = abs(id)
@@ -67,6 +68,31 @@ class GeneratorAnalyzer( Analyzer ):
                 
     def beginLoop(self,setup):
         super(GeneratorAnalyzer,self).beginLoop(setup)
+
+    def addGenTauSusyExtra(self, genTau) :
+      gTau=genTau
+      while True: #descend down radiation chain
+        for i in range(gTau.numberOfDaughters()):
+           radiated=False
+           if gTau.daughter(i).pdgId()==gTau.pdgId():
+              gTau=gTau.daughter(i)
+              radiated=True
+              break
+        if not radiated: break
+      MEx = sum([gTau.daughter(i).px() for i in range( gTau.numberOfDaughters()) if abs(gTau.daughter(i).pdgId()) in [12,14,16] ])
+      MEy = sum([gTau.daughter(i).py() for i in range( gTau.numberOfDaughters()) if abs(gTau.daughter(i).pdgId()) in [12,14,16] ])
+      genTau.nNuE=sum([1 for i in range( gTau.numberOfDaughters() ) if abs(gTau.daughter(i).pdgId())==12])
+      genTau.nNuMu=sum([1 for i in range( gTau.numberOfDaughters() ) if abs(gTau.daughter(i).pdgId())==14])
+      genTau.nNuTau=sum([1 for i in range( gTau.numberOfDaughters() ) if abs(gTau.daughter(i).pdgId())==16])
+#      if genTau.nNuE+genTau.nNuMu+genTau.nNuTau==0:
+#        print gTau.px(),gTau.py(), gTau.pdgId()
+#        for i in range( gTau.numberOfDaughters()):
+#          print i, gTau.daughter(i).pdgId(),gTau.daughter(i).px(),gTau.daughter(i).py()
+      genTau.MEx = MEx
+      genTau.MEy = MEy
+      genTau.MEpar =  MEx*cos(gTau.phi())+MEy*sin(gTau.phi())
+      genTau.MEperp = MEy*cos(gTau.phi())-MEx*sin(gTau.phi())
+      return True
 
     def makeMCInfo(self, event):
         verbose = getattr(self.cfg_ana, 'verbose', False)
@@ -234,7 +260,9 @@ class GeneratorAnalyzer( Analyzer ):
                                     event.genlepsFromTop.append(p)
                 elif id == 15:
                     if self.allGenTaus or not any([abs(d.pdgId()) in {11,13} for d in realGenDaughters(p)]):
+                        self.addGenTauSusyExtra(p)
                         event.gentaus.append(p)
+
                 elif id == 6:
                     event.gentopquarks.append(p)
                 elif id == 5:

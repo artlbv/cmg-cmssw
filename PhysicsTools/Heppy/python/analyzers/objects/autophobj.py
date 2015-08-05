@@ -194,9 +194,9 @@ jetTypeExtra = NTupleObjectType("jetExtra",  baseObjectTypes = [ jetType ], vari
   
 metType = NTupleObjectType("met", baseObjectTypes = [ fourVectorType ], variables = [
     NTupleVariable("sumEt", lambda x : x.sumEt() ),
-    NTupleVariable("genPt",  lambda x : x.genMET().pt() , mcOnly=True ),
-    NTupleVariable("genPhi", lambda x : x.genMET().phi(), mcOnly=True ),
-    NTupleVariable("genEta", lambda x : x.genMET().eta(), mcOnly=True ),
+#    NTupleVariable("genPt",  lambda x : x.genMET().pt() , mcOnly=True ),
+#    NTupleVariable("genPhi", lambda x : x.genMET().phi(), mcOnly=True ),
+#    NTupleVariable("genEta", lambda x : x.genMET().eta(), mcOnly=True ),
 ])
 
 ##------------------------------------------  
@@ -218,5 +218,14 @@ genParticleWithAncestryType = NTupleObjectType("genParticleWithAncestry", baseOb
 ])
 genParticleWithLinksType = NTupleObjectType("genParticleWithLinks", baseObjectTypes = [ genParticleWithAncestryType ], mcOnly=True, variables = [
     NTupleVariable("motherIndex", lambda x : x.motherIndex, int, help="index of the mother in the generatorSummary")
+])
+genTauWithLinksExtrasType = NTupleObjectType("genTauWithLinksType", baseObjectTypes = [ genParticleWithAncestryType ], mcOnly=True, variables = [
+    NTupleVariable("MEx", lambda x : x.MEx, float, help="neutrino x momentum from gen-tau"),
+    NTupleVariable("MEy", lambda x : x.MEy, float, help="neutrino y momentum from gen-tau"),
+    NTupleVariable("nNuE", lambda x : x.nNuE, float, help="nuE multiplicity in tau decay"),
+    NTupleVariable("nNuMu", lambda x : x.nNuMu, float, help="nuMu multiplicity in tau decay"),
+    NTupleVariable("nNuTau", lambda x : x.nNuTau, float, help="nuTau multiplicity in tau decay"),
+    NTupleVariable("MEpar", lambda x : x.MEpar, float, help="neutrino momentum from gen-tau, parallel to gen-tau"),
+    NTupleVariable("MEperp", lambda x : x.MEperp, float, help="neutrino momentum from gen-tau, perp. to gen-tau"),
 ])
 
