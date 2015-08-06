@@ -12,8 +12,15 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
 gStyle.SetPadTopMargin(0.05)
+gStyle.SetOptFit()
 
-_colorList = [2,8,4,9,7,3,6] + range(10,50)
+gStyle.SetLabelFont(62)
+gStyle.SetTitleFont(62)
+
+#gStyle.SetPalette(53)
+#gStyle.SetCanvasPreferGL(True)
+
+_colorList = [2,4,8,9,7,3,6] + range(10,50)
 
 def varToLabel(var):
 
@@ -43,7 +50,7 @@ def getLegend(pos = 'ne'):
     leg.SetBorderSize(1)
     leg.SetTextFont(62)
     leg.SetTextSize(0.03321678)
-    leg.SetLineColor(1)
+    leg.SetLineColor(0)
     leg.SetLineStyle(1)
     leg.SetLineWidth(1)
     leg.SetFillColor(0)

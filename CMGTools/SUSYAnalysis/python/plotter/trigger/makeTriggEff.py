@@ -649,6 +649,8 @@ if __name__ == "__main__":
     #cuts = 'nTightEl == 1 && LepGood1_pt > 15 && abs(LepGood1_eta) < 2.1'
     '''
 
+    '''
+
     #############
     # LT: Muon
     #############
@@ -682,11 +684,15 @@ if __name__ == "__main__":
     testTrig = ['Mu50NoIso','MuHT400MET70']
     makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
 
+    '''
+
     varList = ['LepGood1_pt']
     cuts = 'nTightMu == 1 && LepGood1_pt > 5 && HT > 500 && MET > 200'
     refTrig = 'HTMET'
     testTrig = ['Mu50NoIso','MuHT400MET70']
     makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+
+    '''
 
     ## electrons
     varList = ['LepGood1_pt']
@@ -769,6 +775,7 @@ if __name__ == "__main__":
     refTrig = 'SingleEl'
     testTrig = ['EleHT400MET70']
     makeEffPlots(tree, lumi, maxEntries, doFit, varList, refTrig, testTrig, cuts)
+    '''
 
     tfile.Close()
     #outfile.Close()

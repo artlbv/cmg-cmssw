@@ -100,7 +100,8 @@ def get2DHistsFromTree(tree, tvar = ('MET','HT'), refTrig = '', cuts = '', testT
     elif lumi < 0:
         # do lumi scaling for MC
         doLumi = True
-        CMS_lumi.lumi_13TeV = str(lumi) + " fb^{-1}"
+        lumi = abs(lumi)
+        CMS_lumi.lumi_13TeV = str(lumi) + " pb^{-1}"
         CMS_lumi.extraText = "Simulation"
         hRef.GetYaxis().SetTitle('Events')
 
@@ -285,7 +286,7 @@ def make2DEffPlots(tree, lumi = -1, maxEntries = -1, varList = [], refTrig = '',
         lumiDir = 'MC/LumiMC/'
     elif lumi < 0:
         # scaled MC
-        lumiDir = 'MC/Lumi'+str(lumi).replace('.','p')+'fb/'
+        lumiDir = 'MC/Lumi'+str(-lumi).replace('.','p')+'pb/'
     elif lumi > 0:
         # data
         lumiDir = 'Data/Lumi'+str(lumi).replace('.','p')+'pb/'
@@ -525,24 +526,69 @@ if __name__ == "__main__":
     ###################
     ###################
 
-    lumi = 44.8
-
     if 'JetHT' in fileName:
+
+        lumi = 40.0
+
         ## LepPt vs MET
         var = ('MET','Lep_pt')
         varList = [var]
+        refTrig = ''#HT800'
 
         ## Muons
-        cuts = 'nMu >= 1 && Lep_pt > 5 && HT > 400'
-        refTrig = ''
-        testTrig = ['Mu50NoIso||MuHT350MET70','Mu50NoIso','MuHT350MET70']
+        cuts = 'Selected == 1 && nMu >= 1 && Lep_pt > 5 && HT > 400'
+        testTrig = ['Mu50||MuHT350MET70','Mu50','MuHT350MET70']
         make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
         ## Electrons
-        cuts = 'nEl >= 1 && Lep_pt > 5 && HT > 400'
-        refTrig = ''#HT350'
-        testTrig = ['ElNoIso||EleHT350MET70','ElNoIso','EleHT350MET70']
+        cuts = 'Selected == 1 && nEl >= 1 && Lep_pt > 5 && HT > 400'
+        testTrig = ['Ele105||EleHT350MET70','Ele105','EleHT350MET70']
         make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
+
+    elif 'HTMHT' in fileName:
+
+        lumi = 40.0
+
+        ## LepPt vs MET
+        var = ('MET','Lep_pt')
+        varList = [var]
+        refTrig = 'HT350MET100'
+
+        ## Muons
+        cuts = 'Selected == 1 && nMu >= 1 && Lep_pt > 5 && HT > 400'
+        testTrig = ['Mu50||MuHT350MET70','Mu50','MuHT350MET70']
+        make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
+
+        ## Electrons
+        cuts = 'Selected == 1 && nEl >= 1 && Lep_pt > 5 && HT > 400'
+        testTrig = ['Ele105||EleHT350MET70','Ele105','EleHT350MET70']
+        make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
+
+    ###################
+    ###################
+    # MC
+    ###################
+    ###################
+
+    elif 'TTJets' in fileName:
+
+        lumi = -40.0
+
+        ## LepPt vs MET
+        var = ('MET','Lep_pt')
+        varList = [var]
+        refTrig = ''#HT800'
+
+        ## Muons
+        cuts = 'Selected == 1 && nMu >= 1 && Lep_pt > 5 && HT > 400'
+        testTrig = ['Mu50NoIso||MuHT400MET70','Mu50NoIso','MuHT400MET70']
+        make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
+
+        ## Electrons
+        cuts = 'Selected == 1 && nEl >= 1 && Lep_pt > 5 && HT > 400'
+        testTrig = ['ElNoIso||EleHT400MET70','ElNoIso','EleHT400MET70']
+        make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
+
     else:
         print 'Nothing to draw for this file!'
 

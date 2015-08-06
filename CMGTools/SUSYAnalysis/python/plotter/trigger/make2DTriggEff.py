@@ -536,8 +536,7 @@ if __name__ == "__main__":
     testTrig = ['HTMET','EleHT400MET70']
     var = ('MET','HT')
     varList = [var]
-    make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
-
+    #make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
     ## LepPt vs MET
     var = ('MET','LepGood1_pt')
@@ -545,9 +544,9 @@ if __name__ == "__main__":
 
     ## Muons
     cuts = 'nTightMu >= 1 && LepGood1_pt > 5 && HT > 500'
-    refTrig = ''
-    testTrig = ['Mu50NoIso||MuHT400MET70','Mu50NoIso','MuHT400MET70']
-    #make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
+    refTrig = 'HT350'
+    testTrig = ['Mu50NoIso||MuHT400MET70']#,'Mu50NoIso','MuHT400MET70']
+    make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
     ## Electrons
     cuts = 'nTightEl >= 1 && LepGood1_pt > 5 && HT > 500'
