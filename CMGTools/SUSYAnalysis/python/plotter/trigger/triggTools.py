@@ -22,6 +22,22 @@ gStyle.SetTitleFont(62)
 
 _colorList = [2,4,8,9,7,3,6] + range(10,50)
 
+#pt_bins = range(0,30,2) + range(30,70,5) + range(70,150,10) + range (150,250,25) + range(250,350,50)
+pt_bins = range(0,30,2) + range(30,70,5) + range(70,150,10) + range (150,350,50)
+#pt_bins = range(0,30,2) + range(30,70,5) + range(70,100,10)
+pt_bins_2d = range(0,80,10) + range(80,150,20) + range (150,350,50)
+
+#lt_bins = range(0,100,10) + range(100,200,25) + range(200,400,50) + range(400,700,100) # high stat
+lt_bins = range(0,200,25) + range(200,300,50) + range(300,700,150) # low stat
+
+met_bins = range(0,200,10) + range(200,400,50) + range(400,700,100) # high stat
+#met_bins = range(0,200,40) + range(200,400,100) + range(400,700,300) # low stat
+met_bins_2d = range(0,200,25) + range(200,400,100) + range(400,700,200) # high stat
+
+ht_bins = range(0,200,10) + range(200,400,50) + range(400,1000,100) + range(1000,1750,250) # high stat
+#ht_bins = range(0,200,40) + range(200,400,100) + range(400,1000,300) + range(1000,1750,250) # low stat
+ht_bins_2d = range(0,200,10) + range(200,400,50) + range(400,1000,100) + range(1000,1750,250) # high stat
+
 def varToLabel(var):
 
     label = var
@@ -30,6 +46,7 @@ def varToLabel(var):
         label = 'p_{T}(lep)'
     elif 'MET' in var:
         label = 'E_{T}^{miss}'
+        #label = '#slashE_{T}'
     elif 'T' in var:
         label = var.replace('T','_{T}')
 
@@ -123,6 +140,8 @@ def saveCanvases(canvList, pdir = '', extraName = '', _batchMode = True):
         for ext in extList:
             cname = canv.GetName().replace('Lep_pt','LepPt')
             cname = cdir + cname+ suffix + ext
+            # remove special symbols
+            cname = cname.replace('||','or')
             canv.SaveAs(cname)
         canv.Write()
 
@@ -145,6 +164,15 @@ def renameTrig(trigName):
     trigName = trigName.replace('ElNoIso','El105')
     trigName = trigName.replace('SingleEl','El32')
     trigName = trigName.replace('HTMET','HT350MET120')
+
+    if trigName == 'IsoMu27||IsoEle32':
+        trigName = 'IsoMu27||Ele32'
+
+    if trigName == 'MuHT350MET70||EleHT350MET70':
+        trigName = 'Mu||Ele x HT350MET70'
+
+    if trigName == 'Mu50||MuHT350MET70||Ele105||EleHT350MET70':
+        trigName = 'Mu+Ele combined'
 
     return trigName
 
