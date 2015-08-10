@@ -68,19 +68,15 @@ def get2DHistsFromTree(tree, tvar = ('MET','HT'), refTrig = '', cuts = '', testT
     # make hist
     nbins = 50
 
-    pt_bins = range(0,30,2) + range(30,70,5) + range(70,150,10) + range (150,250,25) + range(250,350,50)
-    met_bins = range(0,200,10) + range(200,400,50) + range(400,700,100)
-    ht_bins = range(0,200,10) + range(200,400,50) + range(400,1000,100) + range(1000,1750,250)
-
     if var1 == 'MET' and var2 == 'HT':
         hRef = TH2F(rname,htitle,nbins,0,1500,nbins,0,600)
-        hRef = TH2F(rname,htitle,len(ht_bins)-1,array('f',ht_bins),len(met_bins)-1,array('f',met_bins))
+        hRef = TH2F(rname,htitle,len(ht_bins_2d)-1,array('f',ht_bins_2d),len(met_bins_2d)-1,array('f',met_bins_2d))
     elif var1 == 'HT' and var2 == 'MET':
-        hRef = TH2F(rname,htitle,len(met_bins)-1,array('f',met_bins),len(ht_bins)-1,array('f',ht_bins))
+        hRef = TH2F(rname,htitle,len(met_bins_2d)-1,array('f',met_bins_2d),len(ht_bins_2d)-1,array('f',ht_bins_2d))
     elif 'pt' in var2 and var1 == 'MET':
-        hRef = TH2F(rname,htitle,len(pt_bins)-1,array('f',pt_bins),len(met_bins)-1,array('f',met_bins))
+        hRef = TH2F(rname,htitle,len(pt_bins_2d)-1,array('f',pt_bins_2d),len(met_bins_2d)-1,array('f',met_bins_2d))
     elif 'pt' in var2 and var1 == 'HT':
-        hRef = TH2F(rname,htitle,len(pt_bins)-1,array('f',pt_bins),len(ht_bins)-1,array('f',ht_bins))
+        hRef = TH2F(rname,htitle,len(pt_bins_2d)-1,array('f',pt_bins_2d),len(ht_bins_2d)-1,array('f',ht_bins_2d))
     else:
         hRef = TH2F(rname,htitle,nbins,0,1500,nbins,0,600)
 
@@ -361,24 +357,6 @@ if __name__ == "__main__":
     lumi = 0
 
     '''
-    ## DEFINE plots
-    # variable list
-    #varList = ['HT']#,'MET','ST']
-    #varList = ['HT','LepGood1_pt']#,'LepGood1_eta']
-    varList = ['LepGood1_pt']
-
-    # TEST triggers
-    #testTrig = ['SingleMu','SingleEl','HT350','MET170']
-    #testTrig = ['HT350','HT900','HTMET','MET170']#,'MuHT400MET70']
-    #testTrig = ['HT350','HT600','HT900']
-    #testTrig = ['MuHT400MET70']
-    #testTrig = ['HT900', 'MuHad']
-    #testTrig = ['HLT_SingleMu', 'HLT_MuNoIso', 'HLT_MuHad', 'HLT_MuHT600', 'HLT_MuHT400MET70','HLT_MuMET120', 'HLT_MuHT400B']
-    #testTrig = ['HLT_SingleEl', 'HLT_ElNoIso', 'HLT_ElHad', 'HLT_EleHT600','HLT_EleHT400MET70','HLT_EleHT200', 'HLT_EleHT400B']
-    #testTrig = ['HLT_SingleEl','HLT_ElNoIso','HLT_EleHT600']
-    #testTrig = ['HLT_SingleMu','HLT_MuNoIso','HLT_MuHT600']
-    '''
-
     # muon
     cuts = 'nTightMu >= 1 && LepGood1_pt > 25'
     refTrig = 'SingleMu'
@@ -396,8 +374,6 @@ if __name__ == "__main__":
     varList = [var]
     #make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
-
-    '''
     #############
     # LT: Muon
     #############
@@ -526,6 +502,9 @@ if __name__ == "__main__":
     ###################
     ###################
 
+    # define base cuts like filters
+    basecut = ''
+
     if 'JetHT' in fileName:
 
         lumi = 40.0
@@ -537,12 +516,12 @@ if __name__ == "__main__":
 
         ## Muons
         cuts = 'Selected == 1 && nMu >= 1 && Lep_pt > 5 && HT > 400'
-        testTrig = ['Mu50||MuHT350MET70','Mu50','MuHT350MET70']
+        testTrig = ['Mu50||MuHT350MET70']#,'Mu50','MuHT350MET70']
         make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
         ## Electrons
         cuts = 'Selected == 1 && nEl >= 1 && Lep_pt > 5 && HT > 400'
-        testTrig = ['Ele105||EleHT350MET70','Ele105','EleHT350MET70']
+        testTrig = ['Ele105||EleHT350MET70']#,'Ele105','EleHT350MET70']
         make2DEffPlots(tree, lumi, maxEntries, varList, refTrig, testTrig, cuts)
 
     elif 'HTMHT' in fileName:
