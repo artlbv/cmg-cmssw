@@ -1,9 +1,9 @@
 == 1 hard lep: nLep == 1 && Selected == 1 && Lep_pt > 25 && nVeto == 0
 HT > 500: HT > 500
-LT > 250: LT > 250
+#LT > 250: LT > 250
 
 Trigger: !isData || (isData && (HLT_EleHT350 || HLT_MuHT350))
-XOR: (PD_SingleEle && nEl==1) || (PD_SingleMu && nMu==1)
+XOR: !isData || (isData && ((PD_SingleEle && nEl==1) || (PD_SingleMu && nMu==1)))
 
 nJet >= 2: nJet >= 2
 #LSL JetPt> 80: LSLjetptGT80 == 1
