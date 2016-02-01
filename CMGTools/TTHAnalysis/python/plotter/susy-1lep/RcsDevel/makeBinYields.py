@@ -31,11 +31,19 @@ sigFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/MiniAODv2_hadrFlav_
 dataFTdir = "/afs/desy.de/user/l/lobanov/public/CMG/SampLinks/MiniAODv2_hadrFlav_2p2fb/Friends/Data/trig_skim_2p2fb/"
 
 
+#Dilepton stuff
+#mcFTdir = "/nfs/dust/cms/user/kirschen/newSUSYStuff/CMSSW_7_4_12_patch4/src/CMGTools/SUSYAnalysis/macros/FreshFriends_V2"
+#sigFTdir = "/nfs/dust/cms/user/kirschen/newSUSYStuff/CMSSW_7_4_12_patch4/src/CMGTools/SUSYAnalysis/macros/FreshFriends_V2/Signal"
+#dataFTdir = "/nfs/dust/cms/user/kirschen/newSUSYStuff/CMSSW_7_4_12_patch4/src/CMGTools/SUSYAnalysis/macros/FreshFriends_V2/Data"
+
+
+
+
 def addOptions(options):
 
     # LUMI (overwrite default 19/fb)
     if options.lumi > 19:
-        options.lumi = 2.1
+        options.lumi = 2.2
 
     # set tree options -- set only if not set in cmd line
     if options.path == "./":
@@ -64,7 +72,8 @@ def addOptions(options):
 
     elif options.grid:
         options.var =  "Selected:(nEl-nMu)"
-        options.bins = "3,-1.5,1.5,2,-1.5,1.5"
+        #options.bins = "3,-1.5,1.5,2,-1.5,1.5"
+        options.bins = "4,-2.5,3.3333333,2,-1.5,1.5"#to cover dilept. as well will have to write content of 0 bin to 4th bin... to also cover for mixed case #CAVEAT/TOFIX: IGNORING ELE/MU mixed case for now (overwritten later with ele+mu)
 
     elif options.plot:
 
@@ -86,18 +95,25 @@ def makeLepYieldGrid(hist, options):
     for ybin in range(1,hist.GetNbinsY()+1):
         ymu = hist.GetBinContent(1,ybin)
         yele = hist.GetBinContent(3,ybin)
+        yDLMix = hist.GetBinContent(2,ybin)
 
         # set MC errors to be sqrt(N)
         if options.mcPoissonErrors:
             #print "Setting Poisson errors for MC"
             hist.SetBinError(1,ybin,sqrt(ymu))
+            hist.SetBinError(2,ybin,sqrt(DLMix))
             hist.SetBinError(3,ybin,sqrt(yele))
 
         ymuErr = hist.GetBinError(1,ybin)
         yeleErr = hist.GetBinError(3,ybin)
+        yDLMixErr = hist.GetBinError(2,ybin)
 
-        ylep = ymu+yele
-        ylepErr = hypot(ymuErr,yeleErr)
+
+        ylep = ymu+yele+yDLMix
+        ylepErr = hypot(yDLMixErr,hypot(ymuErr,yeleErr))
+
+        hist.SetBinContent(4,ybin,yDLMix)
+        hist.SetBinError(4,ybin,yDLMixErr)
 
         hist.SetBinContent(2,ybin,ylep)
         hist.SetBinError(2,ybin,ylepErr)
@@ -107,6 +123,7 @@ def makeLepYieldGrid(hist, options):
             print 'Mu yields:\t', ymu, ymuErr
             print 'Ele yields:\t', yele, yeleErr
             print 'Mu+Ele yields:\t', ylep, ylepErr
+            print 'Mixed case (non-zero for dilepton only) yields:\t', yDLMix, yDLMixErr
 
 def makeUpHist(hist, options):
 
@@ -144,6 +161,11 @@ def writeYields(options):
     mca  = MCAnalysis(options.mcaFile,options)
     cuts = CutsFile(options.cutFile,options)
 
+    if options.bin.endswith("_DLCR"):
+        cuts = CutsFile(options.cutFileDL,options)
+
+    print options.bin, cuts.allCuts()
+        
     # make bin name and outdir names
     binname = options.bin
     if options.outdir == None:
@@ -155,6 +177,7 @@ def writeYields(options):
     if options.pretend:
         report = []
     else:
+        if options.verbose > 1: print cuts.allCuts()
         report = mca.getPlotsRaw("x", options.var, options.bins, cuts.allCuts(), nodata=options.asimov)
 
 #    print mca._backgrounds
@@ -166,7 +189,7 @@ def writeYields(options):
         totalMC = []; ewkMC = []
 
         for p in mca.listBackgrounds():
-            if p in report and 'TTdiLep' not in p and 'TTsemiLep' not in p and 'TTincl' not in p and 'T1ttt' not in p:
+            if p in report and 'TTdiLep' not in p and 'TTsemiLep' not in p and 'TTincl' not in p and 'DiLep_' not in p and 'T1ttt' not in p:
             #if p in report and 'TTdiLep' not in p and 'TTsemiLep' not in p:
                 print 'adding for background',p
                 totalMC.append(report[p])
@@ -369,6 +392,7 @@ if __name__ == "__main__":
     # extra options for tty
     parser.add_option("--mca", dest="mcaFile",default="mca-Spring15.txt",help="MCA sample list")
     parser.add_option("--cuts", dest="cutFile",default="trig_base.txt",help="Baseline cuts file")
+    parser.add_option("--cutsDL", dest="cutFileDL",default="trig_DLbase.txt",help="Baseline cuts file for dilepton CR")
     parser.add_option("--binname", dest="binname",default="test",help="Binname")
 
     # options for cards
@@ -412,15 +436,21 @@ if __name__ == "__main__":
     # make cut list
     cDict = {}
 
+    doDLCR = True
+
     doNjet6 = True
     if doNjet6:
         cDict.update(cutDictCR)
         cDict.update(cutDictSR)
+        if doDLCR: cDict.update(cutDictDLCR)
+
 
     doNjet9 = True
     if doNjet9:
         cDict.update(cutDictSRf9)
         cDict.update(cutDictCRf9)
+        if doDLCR: cDict.update(cutDictDLCRf9)
+
 
     doNjet5 = True
     if doNjet5:
@@ -509,6 +539,15 @@ if __name__ == "__main__":
             print
         else:
             print '.',
+        if options.verbose > 2:
+            print 80*'#'
+            for idx,bin in enumerate(binList):
+                print 'Processing chunk #%i/%i' %(idx,len(binList))
+                print '%s with cuts' %(bin),
+                cuts = cDict[bin]
+                for cut in cuts:
+                    print cut[2],'+',
+                print
 
         if options.doBtagMeth1b == True:
             (cuts,options.mcaFile) = getBTagWstring(cuts,options)

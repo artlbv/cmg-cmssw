@@ -12,10 +12,10 @@ def readSystFile():
     systDict = {}
     with open('sysTable.dat',"r") as xfile:
         lines = xfile.readlines()
-        systs = lines[0].replace(' ','').replace('\n','').split('|') 
+        systs = lines[0].replace(' ','').replace('\n','').split('|')
         print systs
         for line in lines[1:]:
-            values = line.replace(' ','').replace('\n','').split('|')            
+            values = line.replace(' ','').replace('\n','').split('|')
             binMB = values[0]
             binSB = values[1]
             singleSysts = {}
@@ -43,6 +43,19 @@ class BinYield:
 
     def printValue(self, prec = "4.2"):
         return "%4.2f +- %4.2f" % (self.val, self.err)
+
+class OutputHelper:
+    ## Simple class to define sample, category, printSamps (and e.g. printStyle)
+
+    def __init__(self, (sample, cat), printSamps, printStyle=None):
+        self.sample = sample
+        self.cat = cat
+        self.printSamps = printSamps
+        self.printStyle = printStyle
+
+    # func that is called with print OutputHelper object
+    def __repr__(self):
+        return "%s : %s : %s : %s" % (self.sample, self.cat, self.printSamps, self.printStyle)
 
 class YieldStore:
 
@@ -188,11 +201,12 @@ class YieldStore:
     ## Reading functions follow
     ###########################
 
-    def getBinYield(self,samp,cat,bin):
+    def getBinYield(self,samp,cat,bin, verbose=True):
 
         if samp in self.yields:
             if cat in self.yields[samp]:
                 if bin in self.yields[samp][cat]:
+                    if verbose: print self.yields[samp][cat][bin]
                     return self.yields[samp][cat][bin]
             # return zero if sample is in dict (for scans)
             return BinYield(samp, cat, (0, 0))
@@ -215,16 +229,22 @@ class YieldStore:
         return yds
 
     def getMixDict(self, samps = []):
-        # provide dict: sample - category
+        # provide dict: sample - category or list of OutputHelper
         # return dict: bin - yields (corresp to sample,cat)
 
         yds = {}
         for bin in self.bins:
             yds[bin] = []
 
-            for samp,cat in samps:
-                yds[bin].append(self.getBinYield(samp,cat,bin))
-
+            for i,sample in enumerate(samps):
+                if type(sample) is tuple:
+#                    print "doing tuple approach (legacy)"
+                    samp,cat = sample
+                    yds[bin].append(self.getBinYield(samp,cat,bin))
+                elif isinstance(sample, OutputHelper):
+#                    print "doing OutPutHelper approach"
+                    yds[bin].append(self.getBinYield(sample.sample,sample.cat,bin))
+                else: print "sample is of type ", type(sample)
         return yds
 
     def printBins(self, samp,cat):
@@ -269,11 +289,14 @@ class YieldStore:
         yds = self.getMixDict(samps)
         ydsNorm = self.getMixDict([('EWK', 'Kappa'),])
 
-        nSource = len(samps)
+    def printLatexTableEnh(self, OutputHelperList, label, f):
+        yds = self.getMixDict(OutputHelperList)
+        nSource = len(OutputHelperList)
         nCol = nSource + 4
         f.write('\multicolumn{' + str(nCol) + '}{|c|}{' +label +'} \\\ \n')
         f.write('\multicolumn{' + str(nCol) + '}{|c|}{'  '} \\\ \\hline \n')
-        f.write('$L_T$ & $H_T$ & nB & binName &' +  ' %s ' % ' & '.join(map(str, printSamps)) + ' \\\ \n')
+        f.write('$L_T$ & $H_T$ & nB & binName &' +  ' %s ' % ' & '.join([x.printSamps for x in OutputHelperList]) + ' \\\ \n')
+#        f.write('$L_T$ & $H_T$ & nB & binName &' +  ' %s ' % ' & '.join(map(str, printSamps)) + ' \\\ \n')
         f.write(' $[$ GeV $]$  &   $[$GeV$]$ & &  '  + (nSource *'%(tab)s  ') % dict(tab = '&') + ' \\\ \\hline \n')
 
         bins = sorted(yds.keys())
@@ -291,12 +314,13 @@ class YieldStore:
             elif LT == LT0 and HT == HT0:
                 f.write('  &  & ' + B + '&' + LTbin +', ' + HTbin + ', ' + Bbin)
 
+            for i,yd in enumerate(yds[bin]):
 
-            for yd in yds[bin]:
                 precision = 2
                 if yd == 0:
                     f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % (0.0, 0.0))
                 else:
+                    print OutputHelperList[i]
                     val = yd.val
                     err = yd.err
                     syserr = 0
@@ -313,14 +337,17 @@ class YieldStore:
                             syserr = syserr + (val*(1.0-float(systDict[bin][syst])))*(val*(1.0-float(systDict[bin][syst])))
                         syserr = math.sqrt(syserr)
                         print syserr, val
-                    
+
                     if doSys and 'syst' in yd.name:
                         precision = 2
                         print val, ydsNorm[bin][0].val
-                        f.write((' & %.'+str(precision)+'f' ) % (val*100))
-
+#                        f.write((' & %.'+str(precision)+'f' ) % (val*100)) old
+                        f.write((' & %.'+str(precision)+'f' ) % (val/ydsNorm[bin][0].val*100))
                     elif 'SR_MB_predict' in yd.cat and 'data' in yd.name :
                         f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % (val, err, syserr))
+                    elif OutputHelperList[i].printStyle == "percentage":
+                        f.write((' & {:.1f}\%'.format(yd.val*100)))
+#                        f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % val
                     else:
                         f.write((' & %.'+str(precision)+'f $\pm$ %.'+str(precision)+'f') % (val, err))
 
@@ -328,7 +355,6 @@ class YieldStore:
             f.write(' \\\ \n')
         f.write(' \\hline \n')
         return 1
-
 
     def printTable(self, samps, printSamps, label, f):
         yds = self.getMixDict(samps)
@@ -350,7 +376,91 @@ class YieldStore:
             f.write('\n')
         return 1
 
+    def printLatexTable(self, samps, printSamps, label, f):
+        assert len(samps)==len(printSamps)
+        OutputHelperList = []
+        for i,samp in enumerate(samps):
+            OutputHelperList.append(OutputHelper(samp, printSamps[i]))
 
+        return self.printLatexTableEnh(OutputHelperList,label,f)
+
+
+
+
+    def divideTwoYieldDictsForRatio(self,catOne,catTwo, newCatName, correlated=False, sampleOne=None, sampleTwo=None):
+        ##
+        ## Default:
+        ## divides the two yields of given categories catOne, catTwo for each sample in each bin (Yield1/Yield2)
+        ##
+        ## Across samples (if sampleOne and sampleTwo are set):
+        ## divides the yields of given catOne/sampleOne, catTwo/SampleTwo for each bin
+        ## The result is saved under sampleOne with the given newCatName. This is e.g. useful for data/MC comparisons
+        ##
+        for samp in self.samples:
+            if catOne in self.yields[samp] and catTwo in self.yields[samp] and catOne!=catTwo:
+                for bin in self.bins:
+                    c1Y = self.getBinYield(samp,catOne,bin, False)
+                    c2Y = self.getBinYield(samp,catTwo,bin, False)
+                    if sampleOne!=None and sampleTwo!=None:
+#                        if catOne in self.yields[sampleOne] and catTwo in self.yields[sampleTwo] and catOne==catTwo:
+#
+                        if catOne in self.yields[sampleOne] and catTwo in self.yields[sampleTwo]:
+                            c1Y = self.getBinYield(sampleOne,catOne,bin, False)
+                            c2Y = self.getBinYield(sampleTwo,catTwo,bin, False)
+                        else: print "samples/categories not properly defined"
+
+                    if not correlated:
+                        yd = None
+                        if c2Y.val !=0:
+                            yd = BinYield(samp, newCatName, (c1Y.val/c2Y.val, math.sqrt(pow(c1Y.err/c2Y.val,2) +pow(c1Y.val/pow(c2Y.val,2) *c2Y.err ,2) )) )
+                        else:
+                            yd = BinYield(samp, newCatName, (-999,0) )
+#                        print yd
+                        self.addYield(samp, newCatName,bin,yd)
+                    else:
+                        print "not implemented yet, no return defined"
+        if catOne==catTwo and catOne=="COPYALL" and sampleOne!=None and sampleTwo!=None:
+            for cat in self.categories:
+                print "trying ", cat
+                if "_RTo_" not in cat:
+                    for bin in self.bins:
+                        print cat, bin
+                        c1Y = self.getBinYield(sampleOne,cat,bin, False)
+                        c2Y = self.getBinYield(sampleTwo,cat,bin, False)
+                        print c1Y, c2Y
+                        if not correlated:
+                            yd = None
+                            if c2Y.val !=0:
+                                yd = BinYield(sampleOne, cat+"_RTo_"+sampleTwo, (c1Y.val/c2Y.val, math.sqrt(pow(c1Y.err/c2Y.val,2) +pow(c1Y.val/pow(c2Y.val,2) *c2Y.err ,2) )) )
+                                print "bla", yd
+                            else:
+                                yd = BinYield(sampleOne, cat+"_RTo_"+sampleTwo, (-999,0) )
+                            self.addYield(sampleOne, cat+"_RTo_"+sampleTwo,bin,yd)
+                        else:
+                            print "not implemented yet, no return defined"
+
+
+#        elif sampleOne!=None and sampleOne!=None:
+#            if catOne in self.yields[sampeOne] and catTwo in self.yields[sampleTwo]:
+#                    for bin in self.bins:
+#                        c1Y = self.getBinYield(samp,catOne,bin)
+#                        c2Y = self.getBinYield(samp,catTwo,bin)
+#                        if not correlated:
+#                            yd = None
+#                            if c2Y.val !=0:
+#                                yd = BinYield(samp, newCatName, (c1Y.val/c2Y.val, math.sqrt(pow(c1Y.err/c2Y.val,2) +pow(c1Y.val/pow(c2Y.val,2) *c2Y.err ,2) )) )
+#                            else:
+#                                yd = BinYield(samp, newCatName, (-999,0) )
+#                            print yd
+#                            self.addYield(samp, newCatName,bin,yd)
+#                        else:
+#                            print "not implemented yet, no return defined"
+#
+#
+#
+#            elif catOne in self.yields[samp] and catTwo in self.yields[samp] and sampleOne==samp and sampleOne!=None:
+#                for bin in self.bins:
+#
 
 if __name__ == "__main__":
 

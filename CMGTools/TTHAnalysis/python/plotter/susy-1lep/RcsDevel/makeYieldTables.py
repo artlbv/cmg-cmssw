@@ -126,6 +126,48 @@ if __name__ == "__main__":
             printLatexFooter(f, 2)
             f.close()
 
+    print "Prepare dileptonic printout by calculating"
+    yds6.divideTwoYieldDictsForRatio('DLCR_MB','SR_MB','DLCR_MB_RelSize')
+    yds6.divideTwoYieldDictsForRatio('DLCR_SB','SR_SB','DLCR_SB_RelSize')
+    yds9.divideTwoYieldDictsForRatio('DLCR_MB','SR_MB','DLCR_MB_RelSize')
+    yds9.divideTwoYieldDictsForRatio('DLCR_SB','SR_SB','DLCR_SB_RelSize')
+
+    yds6.divideTwoYieldDictsForRatio('COPYALL','COPYALL','dummy', False, 'background','data')
+    yds9.divideTwoYieldDictsForRatio('COPYALL','COPYALL','dummy', False, 'background','data')
+                                                          
+    yds6.divideTwoYieldDictsForRatio('COPYALL','COPYALL','dummy', False, 'DiLep_Inc','background')
+    yds9.divideTwoYieldDictsForRatio('COPYALL','COPYALL','dummy', False, 'DiLep_Inc','background')
+    
+    yds6.divideTwoYieldDictsForRatio('COPYALL','COPYALL','dummy', False, 'TTdiLep','background')
+    yds9.divideTwoYieldDictsForRatio('COPYALL','COPYALL','dummy', False, 'TTdiLep','background')
+    
+
+    OutputHelperList = []
+    OutputHelperList.append(OutputHelper(('background','SR_MB'),"all bkg(SR)"))
+    OutputHelperList.append(OutputHelper(('DiLep_Inc','SR_MB_RTo_background'),"dilept.(SR)","percentage"))
+    OutputHelperList.append(OutputHelper(('TTdiLep','SR_MB_RTo_background'),"ttbar dilept(SR)","percentage"))
+
+    OutputHelperList.append(OutputHelper(('DiLep_Inc','SR_MB'),"Dilept. bkg(SR)"))
+#    OutputHelperList.append(OutputHelper(('TTdiLep','SR_MB'),"ttbar dilept. bkg(SR)"))
+#    OutputHelperList.append(OutputHelper(('DiLep_Inc','DLCR_MB'),"Dilept. bkg(DLCR)"))
+    OutputHelperList.append(OutputHelper(('background','DLCR_MB'),"all bkg(DLCR)"))
+    OutputHelperList.append(OutputHelper(('DiLep_Inc','DLCR_MB_RTo_background'),"dilept.(DLCR)","percentage"))
+    OutputHelperList.append(OutputHelper(('data','DLCR_MB'),"data(DLCR)"))
+#    OutputHelperList.append(OutputHelper(('background','DLCR_MB_RelDataMC'),"MCData(DLCR)","percentage"))
+    OutputHelperList.append(OutputHelper(('background','DLCR_MB_RTo_data'),"MCData(DLCR)","percentage"))
+    OutputHelperList.append(OutputHelper(('background','CR_MB_RTo_data'),"MCData(CR\_MB)", "percentage"))
+#    OutputHelperList.append(OutputHelper(('TTdiLep','DLCR_MB_RelSize'),"rel. size (DLCR) ttdilep", "percentage"))
+    OutputHelperList.append(OutputHelper(('DiLep_Inc','DLCR_MB_RelSize'),"rel. size (DLCR)","percentage"))
+#    OutputHelperList.append(OutputHelper(('data','DLCR_MB_RelSize'),"rel. size (DLCR)data", "percentage"))
+
+    f =  open('yieldsDLCRComparison.tex','w')
+    printLatexHeader(len(OutputHelperList), f)
+    yds6.showStats()
+    label = 'Yield comparison for DL CR vs. signal region for 2.1 fbinv for njet 6,8 '
+    yds6.printLatexTableEnh(OutputHelperList, label,f) 
+    label = 'Yield comparison for DL CR vs. signal region for 2.1 fbinv for njet $\\geq 9$'
+    yds9.printLatexTableEnh(OutputHelperList, label, f)
+    printLatexFooter(f)
 
     f =  open('4to5j_preditiction.tex','w')
     label = 'Counts and Rcs from 4jet sideband used to predict events in a 5jet signal region $5j_{SR} = Rcs^{4j,data} \\times \\kappa^{EWK, MC} \\times 5j_{CR}$'

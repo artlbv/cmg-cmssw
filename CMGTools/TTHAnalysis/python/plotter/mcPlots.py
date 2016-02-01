@@ -489,7 +489,7 @@ def doRatioHists(pspec,pmap,total,totalSyst,maxRange,fitRatio=None):
 #        unity0.Draw("E2 SAME");
 #    else:
 #        if total != totalSyst: unity0.Draw("E2 SAME");
-    unity.GetYaxis().SetRangeUser(rmin,rmax);
+    unity.GetYaxis().SetRangeUser(pspec.getOption('RMin',rmin), pspec.getOption('RMax',rmax))
     unity.GetXaxis().SetTitleSize(0.14)
     unity.GetYaxis().SetTitleSize(0.14)
     unity.GetXaxis().SetLabelSize(0.11)
@@ -791,13 +791,17 @@ class PlotMaker:
                     total.GetXaxis().SetMoreLogLabels(True)
                 #if islog: total.SetMaximum(2*total.GetMaximum())
                 #if not islog: total.SetMinimum(0)
-                if not options.extraLabel=="": #free some space on the canvas for extra label lines
+                if not options.extraLabel=="" or pspec.hasOption('extralabel'): #free some space on the canvas for extra label lines
+                    if pspec.hasOption('extralabel'):
+                        pspec.setOption('extralabel', options.extraLabel + pspec.getOption('extralabel'))
+                    elif options.extraLabel!="":
+                        pspec.setOption('extralabel', options.extraLabel)
                     tmpMin = 0.1 #default log miminum
                     if pspec.hasOption('YMin'):
                         tmpMin = pspec.getOption('YMin',1.0)
                     total.SetMinimum(tmpMin)
                     tmpMax = total.GetMaximum()#total.GetBinContent(total.GetMaximumBin())
-                    relHistHeight = 1- (ROOT.gStyle.GetPadTopMargin() + ROOT.gStyle.GetPadBottomMargin() + 0.03*len(options.extraLabel.split("\\n")))
+                    relHistHeight = 1- (ROOT.gStyle.GetPadTopMargin() + ROOT.gStyle.GetPadBottomMargin() + 0.03*len(pspec.getOption('extralabel',"").split("\\n")))
                     if islog: maximum = tmpMin * pow(tmpMax/tmpMin,1./relHistHeight);
                     else: maximum = (tmpMax-tmpMin)/relHistHeight + tmpMin
                     total.SetMaximum(maximum)
@@ -859,7 +863,7 @@ class PlotMaker:
                     else:
                         doCMSlumi(c1,True)
 
-                if not options.extraLabel=="": printExtraLabel(options.extraLabel,pspec.getOption('Legend','TR'))
+                if pspec.hasOption('extralabel'): printExtraLabel(pspec.getOption('extralabel'),pspec.getOption('Legend','TR'))
                 signorm = None; datnorm = None; sfitnorm = None
                 if options.showSigShape or options.showIndivSigShapes or options.showIndivSigs: 
                     signorms = doStackSignalNorm(pspec,pmap,options.showIndivSigShapes or options.showIndivSigs,extrascale=options.signalPlotScale, norm=not options.showIndivSigs)

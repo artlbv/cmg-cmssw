@@ -100,7 +100,7 @@ def getSystHist(tfile, hname, syst = "Xsec"):
 def makeSystHists(fileList):
 
     # filter
-    #fileList = [fname for fname in fileList if 'NB3' not in fname]
+    fileList = [fname for fname in fileList if 'NB3' not in fname]
 
     hnames = ["T1tttt_Scan"] # process name
     #hnames = ["EWK"] # process name

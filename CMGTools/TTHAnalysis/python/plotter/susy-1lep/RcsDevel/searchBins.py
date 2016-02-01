@@ -8,6 +8,20 @@ binsLT['LT2i'] = ('350 < LT','$\geq$ 350')
 binsLT['LT3i'] = ('450 < LT','$\geq$ 450')
 binsLT['LT4i'] = ('600 < LT','$\geq$ 600')
 
+binsLT['DLLT1'] = ('250 < DL_ST[2] && DL_ST[2] < 350','[250, 350]')
+binsLT['DLLT2'] = ('350 < DL_ST[2] && DL_ST[2] < 450','[350, 450]')
+binsLT['DLLT3'] = ('450 < DL_ST[2] && DL_ST[2] < 600','[450, 600]')
+binsLT['DLLT3i'] = ('450 < DL_ST[2]','$\geq$ 450')
+binsLT['DLLT4i'] = ('600 < DL_ST[2]','$\geq$ 600')
+
+DLLTDict = {}
+DLLTDict['LT1']  = 'DLLT1'
+DLLTDict['LT2']  = 'DLLT2'
+DLLTDict['LT3']  = 'DLLT3'
+DLLTDict['LT3i'] = 'DLLT3i'
+DLLTDict['LT4i'] = 'DLLT4i'
+
+
 # HT bins
 binsHT = {}
 binsHT['HT0i'] = ('500 < HT','$\geq$ 500')
@@ -16,6 +30,25 @@ binsHT['HT1'] = ('750 < HT && HT < 1250','[750, 1250]')
 binsHT['HT1i'] = ('750 < HT','$\geq$ 750')
 binsHT['HT2i'] = ('1250 < HT','$\geq$ 1250')
 binsHT['HT01'] = ('500 < HT && HT < 1250','[500, 1250]')
+
+##binsHT for dilepton study (HT recalculated ([2] option for now))
+binsHT['DLHT0i'] = ('500 < DL_HT[2]','$\geq$ 500')
+binsHT['DLHT0'] = ('500 < DL_HT[2] && DL_HT[2] < 750','[500, 750]')
+binsHT['DLHT1'] = ('750 < DL_HT[2] && DL_HT[2] < 1250','[750, 1250]')
+binsHT['DLHT1i'] = ('750 < DL_HT[2]','$\geq$ 750')
+binsHT['DLHT2i'] = ('1250 < DL_HT[2]','$\geq$ 1250')
+binsHT['DLHT01'] = ('500 < DL_HT[2] && DL_HT[2] < 1250','[500, 1250]')
+
+DLHTDict = {}
+DLHTDict['HT0i'] = 'DLHT0i'
+DLHTDict['HT0']  = 'DLHT0'
+DLHTDict['HT1']  = 'DLHT1'
+DLHTDict['HT1i'] = 'DLHT1i'
+DLHTDict['HT2i'] = 'DLHT2i'
+DLHTDict['HT01'] = 'DLHT01'
+
+
+
 
 # NB bins
 binsNB = {}
@@ -27,6 +60,25 @@ binsNB['NB0i'] = ('nBJet >= 0','$\geq$ 0')
 binsNB['NB1i'] = ('nBJet >= 1','$\geq$ 1')
 binsNB['NB2i'] = ('nBJet >= 2','$\geq$ 2')
 binsNB['NB3i'] = ('nBJet >= 3','$\geq$ 3')
+
+##binsNb for dilepton study (all nb>=1,2,3 collapsed to nB>=1), ignoring NB0 for now
+DLnBDict = {}
+DLnBDict['NB1']   = 'NB1i'
+DLnBDict['NB2']   = 'NB1i'
+DLnBDict['NB1i']   = 'NB1i'
+DLnBDict['NB2i']   = 'NB1i'
+DLnBDict['NB3i']   = 'NB1i'
+
+###binsNb for dilepton study don't change anything for now...
+#DLnBDict = {}
+#DLnBDict['NB0']   = 'NB0'
+#DLnBDict['NB1']   = 'NB1'
+#DLnBDict['NB2']   = 'NB2'
+#DLnBDict['NB0i']   = 'NB0i'
+#DLnBDict['NB1i']   = 'NB1i'
+#DLnBDict['NB2i']   = 'NB2i'
+#DLnBDict['NB3i']   = 'NB3i'
+
 
 # NJ Bins
 binsNJ = {}
@@ -40,12 +92,33 @@ binsNJ['NJ9i'] = ('9 <= nJets30Clean','$\geq$ 9')
 binsNJ['NJ5'] = ('nJets30Clean == 5','[5]')
 binsNJ['NJ4f5'] = ('nJets30Clean == 4','[4]')
 
+##binsNJ for dilepton study (decreased by 1)
+binsNJ['NJ23'] = ('2 <= nJets && nJets <= 3','[2, 3]')
+binsNJ['NJ3i'] = ('3 <= nJets','$\geq$ 3')
+binsNJ['NJ34f8'] = ('3 <= nJets && nJets <= 4','[3, 4]')
+binsNJ['NJ34f7'] = ('3 <= nJets && nJets <= 4','[3, 4]')
+binsNJ['NJ57'] = ('5 <= nJets && nJets <= 7','[5, 7]')
+binsNJ['NJ9i'] = ('8 <= nJets','$\geq$ 8')
+
+DLnJDict = {}
+DLnJDict['NJ34']   = 'NJ23'
+DLnJDict['NJ4i']   = 'NJ3i'
+DLnJDict['NJ45f9'] = 'NJ34f8'
+DLnJDict['NJ45f6'] = 'NJ34f7'
+DLnJDict['NJ68']   = 'NJ57'
+DLnJDict['NJ9i']   = 'NJ9i'
+
+
+
+
+
 ## Signal/Control region (wrt dPhi)
 binsSR = {}
 #unblind now
 binsSR['SR'] = ('abs(isSR) == 1','$\delta \phi > $ x')
 binsCR = {}
 binsCR['CR'] = ('isSR == 0','$\delta \phi < $ x')
+binsCR['DLCR'] = ('nLep == 2','nLep=2')
 
 
 ################
@@ -135,17 +208,17 @@ for nj_bin in ['NJ45f6','NJ68']:
         '''
         # Match NB bins
         if lt_bin in ['LT1','LT2','LT3','LT4i']:
-            nbbins += ['NB1'] # NB1 present in all NJ,LT bins
+        nbbins += ['NB1'] # NB1 present in all NJ,LT bins
         if lt_bin in ['LT4i']:
-            nbbins += ['NB2i'] # NB2i present in all NJ,LT bins
+        nbbins += ['NB2i'] # NB2i present in all NJ,LT bins
 
         if lt_bin in ['LT1','LT2','LT3']:
-            # Signal region binning
-            if nj_bin in ['NJ68']:
-                nbbins += ['NB2','NB3i']
-            # Side band  binning
-            if nj_bin in ['NJ45f6']:
-                nbbins += ['NB2i']
+        # Signal region binning
+        if nj_bin in ['NJ68']:
+        nbbins += ['NB2','NB3i']
+        # Side band  binning
+        if nj_bin in ['NJ45f6']:
+        nbbins += ['NB2i']
         '''
 
         for nb_bin in nbbins:
@@ -172,9 +245,11 @@ cutDictf9 = {}
 
 cutDictSR = {}
 cutDictCR = {}
+cutDictDLCR = {}
 
 cutDictSRf9 = {}
 cutDictCRf9 = {}
+cutDictDLCRf9 = {}
 
 cutDictNJ45f6 = {}
 cutDictNJ45f9 = {}
@@ -246,9 +321,19 @@ for nj_bin in ['NJ45f6','NJ68']:#binsNJ.iteritems():
 
                 for cr_bin in ['CR']:
                     cr_cut = binsCR[cr_bin][0]
+                    DLcr_bin = 'DL'+cr_bin
+                    DLcr_cut = binsCR[DLcr_bin][0]
 
                     binname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,cr_bin)
                     cutDictCR[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut),("base",cr_bin,cr_cut)]
+
+                    DLbinname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,DLcr_bin)
+                    DLlt_cut = binsLT[DLLTDict[lt_bin]][0]
+                    DLht_cut = binsHT[DLHTDict[ht_bin]][0]
+                    DLnb_cut = binsNB[DLnBDict[nb_bin]][0]
+                    DLnj_cut = binsNJ[DLnJDict[nj_bin]][0]
+                    cutDictDLCR[DLbinname] = [("base",lt_bin,DLlt_cut),("base",ht_bin,DLht_cut),("base",nb_bin,DLnb_cut),("base",nj_bin,DLnj_cut),("base",DLcr_bin,DLcr_cut)]
+
 
 
 ### FIXME
@@ -280,7 +365,7 @@ for nj_bin in ['NJ45f9','NJ9i']:#binsNJ.iteritems():
             if nj_bin in ['NJ9i']:
                 if lt_bin in ['LT1'] and not ht_bin in['HT0i']:
                     nbbins += ['NB1','NB2']
-                    
+
 
                 if lt_bin in ['LT1'] and ht_bin in ['HT0i']:
                     nbbins += ['NB3i']
@@ -306,7 +391,7 @@ for nj_bin in ['NJ45f9','NJ9i']:#binsNJ.iteritems():
 
                 cutDictf9[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut)]
 
-                                # split to SR/CR
+# split to SR/CR
 
                 for sr_bin in ['SR']:
                     sr_cut = binsSR[sr_bin][0]
@@ -316,9 +401,20 @@ for nj_bin in ['NJ45f9','NJ9i']:#binsNJ.iteritems():
 
                 for cr_bin in ['CR']:
                     cr_cut = binsCR[cr_bin][0]
+                    DLcr_bin = 'DL'+cr_bin
+                    DLcr_cut = binsCR[DLcr_bin][0]
 
                     binname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,cr_bin)
                     cutDictCRf9[binname] = [("base",lt_bin,lt_cut),("base",ht_bin,ht_cut),("base",nb_bin,nb_cut),("base",nj_bin,nj_cut),("base",cr_bin,cr_cut)]
+
+                    DLbinname = "%s_%s_%s_%s_%s" %(lt_bin,ht_bin,nb_bin,nj_bin,DLcr_bin)
+                    DLlt_cut = binsLT[DLLTDict[lt_bin]][0]
+                    DLht_cut = binsHT[DLHTDict[ht_bin]][0]
+                    DLnb_cut = binsNB[DLnBDict[nb_bin]][0]
+                    DLnj_cut = binsNJ[DLnJDict[nj_bin]][0]
+                    cutDictDLCRf9[DLbinname] = [("base",lt_bin,DLlt_cut),("base",ht_bin,DLht_cut),("base",nb_bin,DLnb_cut),("base",nj_bin,DLnj_cut),("base",DLcr_bin,DLcr_cut)]
+
+
 
 #####Dictionaries for data cross check from 4 to 5
 cutDictf5 = {}
@@ -380,7 +476,6 @@ for nj_bin in ['NJ4f5','NJ5']:#binsNJ.iteritems():
 
 
 
-
 #####Few bins for illustration
 cutDictf68Few = {}
 cutDictSRf68Few = {}
@@ -413,7 +508,7 @@ for nj_bin in ['NJ45f6','NJ68']:#binsNJ.iteritems():
                     nbbins = ['NB3i']
             else:
                 nbbins = ['NB2i']
-            
+
             for nb_bin in nbbins:
                 nb_cut = binsNB[nb_bin][0]
                 binname = "%s_%s_%s_%s_Few" %(lt_bin,ht_bin,nb_bin,nj_bin)
@@ -448,7 +543,7 @@ for nj_bin in ['NJ45f9','NJ9i']:#binsNJ.iteritems():
 
             nbbins = []
             nbbins = ['NB1i']
-            
+
             for nb_bin in nbbins:
                 nb_cut = binsNB[nb_bin][0]
                 binname = "%s_%s_%s_%s_Few" %(lt_bin,ht_bin,nb_bin,nj_bin)

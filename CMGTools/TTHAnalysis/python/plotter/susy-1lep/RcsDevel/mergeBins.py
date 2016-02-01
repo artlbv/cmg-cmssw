@@ -97,6 +97,7 @@ def findMatchBins(binname):
 
     SR_MBname = binname
     CR_MBname = binname.replace('_SR','_CR')
+    DLCR_MBname = binname.replace('_SR','_DLCR')
 
     #print 'replace', purebname, 'to', matchSB(purebname)
 
@@ -114,6 +115,7 @@ def findMatchBins(binname):
     SBname = SBname[:SBname.find('_NJ')] + '_' + njSB
     SR_SBname = SBname + '_SR'
     CR_SBname = SBname + '_CR'
+    DLCR_SBname = SBname + '_DLCR'
 
     if 'Few' in binname:
         SR_SBname = SR_SBname + '_Few'
@@ -121,12 +123,14 @@ def findMatchBins(binname):
     ## collect files
     if options.verbose > 1:
         print 'Found these bins matching to', binname
-        print 'SR of MB:', SR_MBname
-        print 'CR of MB:', CR_MBname
-        print 'SR of SB:', SR_SBname
-        print 'CR of SB:', CR_SBname
+        print 'SR   of MB:', SR_MBname
+        print 'CR   of MB:', CR_MBname
+        print 'DLCR of MB:', DLCR_MBname
+        print 'SR   of SB:', SR_SBname
+        print 'CR   of SB:', CR_SBname
+        print 'SLCR of SB:', DLCR_SBname
 
-    return (SR_MBname, CR_MBname, SR_SBname, CR_SBname)
+    return (SR_MBname, CR_MBname, DLCR_MBname, SR_SBname, CR_SBname, DLCR_SBname)
 
 def getBinName(name, pattern = "NJ68"):
 
@@ -140,9 +144,10 @@ def getBinName(name, pattern = "NJ68"):
 def writeBins(ofname, srcdir, binnames):
 
     # ofname is output fname
-    # binnames is source fnames: SR_MBname, CR_MBname, SR_SBname, CR_SBname
+    # binnames is source fnames: SR_MBname, CR_MBname, DLCR_MBname, SR_SBname, CR_SBname, DLCR_SBname
 
-    if len(binnames) != 4: print 'Not 4 source names given!'; return 0
+
+    if len(binnames) != 6: print 'Not 6 source names given!'; return 0
 
     if options.verbose > 1:
         print ofname, srcdir, binnames
@@ -153,7 +158,7 @@ def writeBins(ofname, srcdir, binnames):
     #SR_SBdirname = 'SR_SB'; CR_SBdirname = 'CR_SB'
     #SR_MBdirname = 'SR_MB'; CR_MBdirname = 'CR_MB'
 
-    dirnames = ['SR_MB','CR_MB','SR_SB','CR_SB']
+    dirnames = ['SR_MB','CR_MB','DLCR_MB','SR_SB','CR_SB','DLCR_SB']
 
 
     for idx,dname in enumerate(dirnames):
