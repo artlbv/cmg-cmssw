@@ -81,6 +81,10 @@ def getSystHist(tfile, hname, syst = "Xsec"):
                 maxDev = (DevUp-DevDn)/2#WARNING: HERE DOING ONLY AN ENVELOPE OF THE VARIATIONS!
                 #print DevUp, DevDn, maxDev
                 if "RMS" in syst: maxDev = a.std()
+
+                # Make relative uncertainty
+                maxDev /= max(0.0001,hSyst.GetBinContent(bin,ybin)
+
                 # limit max deviation to 200%
                 maxDev = min(maxDev,2.0)
 
@@ -165,12 +169,9 @@ def makeSystHists(fileList):
     #systNames = ["PU"]
     #systNames = ["topPt"]
     #systNames = ["Wxsec"]
-<<<<<<< HEAD
     #systNames = ["TTVxsec"]
-=======
     systNames = ["ScaleMatchVar-Env"]
     #systNames = ["PDFUnc-RMS"]
->>>>>>> 9883995c6504e15efd21826bb656621da4fa2d66
     #systNames = ["JEC"]
     #systNames = ["DLSlope"]
     #systNames = ["DLConst"]
