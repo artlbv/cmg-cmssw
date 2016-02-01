@@ -17,7 +17,8 @@ def getLepYield(hist,leptype = ('lep','sele')):
     if hist.GetNbinsX() == 1:
         return (hist.GetBinContent(1),hist.GetBinError(1))
 
-    elif hist.GetNbinsX() == 4 and hist.GetNbinsY() == 2:
+#    elif hist.GetNbinsX() == 4 and hist.GetNbinsY() == 2:
+    elif hist.GetNbinsX() == 5 and hist.GetNbinsY() == 2:
 
         if leptype == ('mu','anti'):
             return (hist.GetBinContent(1,1),hist.GetBinError(1,1))
@@ -32,6 +33,7 @@ def getLepYield(hist,leptype = ('lep','sele')):
         elif leptype == ('lep','sele'):
             return (hist.GetBinContent(2,2),hist.GetBinError(2,2))
     else:
+        print "WARNING: Integrating over all yields... Check getLepYield definition! "
         return (hist.Integral(),sqrt(hist.Integral()))
 
 def getScanYields(hist,leptype = ('lep','sele')):
@@ -100,7 +102,7 @@ def getYield(tfile, hname = "background",bindir = "", leptype = ('lep','sele')):
     if hist.GetNbinsX() == 1:
         return (hist.GetBinContent(1),hist.GetBinError(1))
 
-    elif hist.GetNbinsX() == 4 and hist.GetNbinsY() == 2:
+    elif hist.GetNbinsX() == 5 and hist.GetNbinsY() == 2:
 
         if leptype == ('mu','anti'):
             return (hist.GetBinContent(1,1),hist.GetBinError(1,1))
@@ -115,6 +117,7 @@ def getYield(tfile, hname = "background",bindir = "", leptype = ('lep','sele')):
         elif leptype == ('lep','sele'):
             return (hist.GetBinContent(2,2),hist.GetBinError(2,2))
     else:
+        print "WARNING: Integrating over all yields... Check getYield definition! "
         return (hist.Integral(),TMath.Sqrt(hist.Integral()))
 
 def getScanYieldDict(tfile, hname = "T1tttt_HM_1200_800",bindir = "", leptype = 'lep'):

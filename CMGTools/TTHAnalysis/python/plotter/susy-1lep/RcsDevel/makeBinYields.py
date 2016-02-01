@@ -73,7 +73,7 @@ def addOptions(options):
     elif options.grid:
         options.var =  "Selected:(nEl-nMu)"
         #options.bins = "3,-1.5,1.5,2,-1.5,1.5"
-        options.bins = "4,-2.5,3.3333333,2,-1.5,1.5"#to cover dilept. as well will have to write content of 0 bin to 4th bin... to also cover for mixed case #CAVEAT/TOFIX: IGNORING ELE/MU mixed case for now (overwritten later with ele+mu)
+        options.bins = "5,-2.5,2.5,2,-1.5,1.5"#to cover dilept. as well will have to write content of 0 bin to 4th bin... to also cover for mixed case #CAVEAT/TOFIX: IGNORING ELE/MU mixed case for now (overwritten later with ele+mu)
 
     elif options.plot:
 
@@ -93,30 +93,42 @@ def addOptions(options):
 def makeLepYieldGrid(hist, options):
 
     for ybin in range(1,hist.GetNbinsY()+1):
-        ymu = hist.GetBinContent(1,ybin)
-        yele = hist.GetBinContent(3,ybin)
-        yDLMix = hist.GetBinContent(2,ybin)
+        ymu = hist.GetBinContent(1,ybin)+hist.GetBinContent(2,ybin) #this is ok as only one of the two bins will be filled for both nLep=1/2
+        yele = hist.GetBinContent(4,ybin)+hist.GetBinContent(5,ybin) #this is ok as only one of the two bins will be filled for both nLep=1/2
+        yDLMix = hist.GetBinContent(3,ybin)
+        #reshuffling to preserve the nEl=nMu=1 information separately for the dilepton case
+        
+        print hist.GetBinError(1,ybin), hist.GetBinError(2,ybin), hist.GetBinError(3,ybin), hist.GetBinError(4,ybin), hist.GetBinError(5,ybin)
+
+        ymuErr = hist.GetBinError(1,ybin)+hist.GetBinError(2,ybin) #this is ok as only one of the two bins will be filled for both nLep=1/2
+        yeleErr = hist.GetBinError(4,ybin)+hist.GetBinError(5,ybin)#this is ok as only one of the two bins will be filled for both nLep=1/2
+        yDLMixErr = hist.GetBinError(3,ybin)
 
         # set MC errors to be sqrt(N)
         if options.mcPoissonErrors:
             #print "Setting Poisson errors for MC"
-            hist.SetBinError(1,ybin,sqrt(ymu))
-            hist.SetBinError(2,ybin,sqrt(DLMix))
-            hist.SetBinError(3,ybin,sqrt(yele))
-
-        ymuErr = hist.GetBinError(1,ybin)
-        yeleErr = hist.GetBinError(3,ybin)
-        yDLMixErr = hist.GetBinError(2,ybin)
-
+            ymuErr = sqrt(ymu)
+            yeleErr = sqrt(yele)
+            yDLMixErr = sqrt(yDLMix)
 
         ylep = ymu+yele+yDLMix
         ylepErr = hypot(yDLMixErr,hypot(ymuErr,yeleErr))
 
-        hist.SetBinContent(4,ybin,yDLMix)
-        hist.SetBinError(4,ybin,yDLMixErr)
+        hist.SetBinContent(1,ybin,ymu)
+        hist.SetBinError(1,ybin,ymuErr)
 
         hist.SetBinContent(2,ybin,ylep)
         hist.SetBinError(2,ybin,ylepErr)
+
+        hist.SetBinContent(3,ybin,yele)
+        hist.SetBinError(3,ybin,yeleErr)
+
+        hist.SetBinContent(4,ybin,yDLMix)
+        hist.SetBinError(4,ybin,yDLMixErr)
+
+        hist.SetBinContent(5,ybin,0.)#unused for now
+        hist.SetBinError(5,ybin,0.)#unused for now
+
 
         if options.verbose > 1:
             print 'Summary for', hist.GetName()
@@ -138,6 +150,7 @@ def makeUpHist(hist, options):
         hist.GetXaxis().SetBinLabel(1,"mu")
         hist.GetXaxis().SetBinLabel(2,"mu+ele")
         hist.GetXaxis().SetBinLabel(3,"ele")
+        hist.GetXaxis().SetBinLabel(4,"DLMix")
 
         hist.GetYaxis().SetBinLabel(1,"anti")
         hist.GetYaxis().SetBinLabel(2,"selected")
@@ -207,7 +220,7 @@ def writeYields(options):
         names = mca.listBackgrounds()
 
         cnames = [] # list of all central samples
-        labels = ["Up","up","down","Down","EWK","TTdiLep","TTsemiLep","TTincl","T1ttt"] # labels to ignore
+        labels = ["Up","up","down","Down","EWK","TTdiLep","TTsemiLep","TTincl","T1ttt","Env","RMS"] # labels to ignore
         for name in names:
             for lab in labels:
                 if lab in name: break
@@ -227,6 +240,7 @@ def writeYields(options):
                 varname = name.replace("EWK","")
                 for cname in cnames:
                     pname = cname + varname
+                    print name, pname, cname, varname
                     sumnames[name].append(report[pname])
 
                 report['x_'+ name] = mergePlots("x_"+name, sumnames[name])
@@ -436,7 +450,7 @@ if __name__ == "__main__":
     # make cut list
     cDict = {}
 
-    doDLCR = True
+    doDLCR = False
 
     doNjet6 = True
     if doNjet6:
@@ -452,7 +466,7 @@ if __name__ == "__main__":
         if doDLCR: cDict.update(cutDictDLCRf9)
 
 
-    doNjet5 = True
+    doNjet5 = False
     if doNjet5:
         cDict.update(cutDictSRf5)
         cDict.update(cutDictCRf5)
