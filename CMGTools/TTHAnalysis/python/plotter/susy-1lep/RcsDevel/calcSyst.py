@@ -36,26 +36,34 @@ def getHnames(fname,tdir):
 
 def getSystHist(tfile, hname, syst = "Xsec"):
 
-    print tfile, hname, syst
-    if "Env" in syst or "RMS" in syst:
+    #print tfile, hname, syst
+    if "Env" in syst or "RMS" in syst:# or "Scale" in syst:
         hNorm = tfile.Get(hname)
-        if hNorm: print "", #"got it", hname
-        else:
+        #if hNorm: print "", #"got it", hname
+        if not hNorm:#else:
             print "ERROR!", hname
             return 0
 #        print hNorm.GetName() + '_' + syst + '_syst'
         hSyst = hNorm.Clone(hNorm.GetName() + '_' + syst + '_syst')
-        histDict = {}
-        for i in range (0,200):
+        hists = []
+        maxrange = 200 if "RMS" in syst else 10
+        for i in range (0,maxrange):
             hnameIter = hname + '_' + syst + str(i)
             tempImport = tfile.Get(hnameIter)
+            #print hnameIter
             if tempImport:
                 hVar = hNorm.Clone(hNorm.GetName() + '_' + syst + '_Var'+str(i))
                 hVar.Add(tempImport,-1)
-                histDict[i] = hVar
+                hists.append(hVar)
         # find maximum deviations
-        for xbin in range(1,hSyst.GetNbinsX()+1):
-            for ybin in range(1,hSyst.GetNbinsY()+1):
+        nbinsX = hSyst.GetNbinsX()+1
+        nbinsY = hSyst.GetNbinsX()+1
+        for xbin in range(1,nbinsX):
+            for ybin in range(1,nbinsY):
+
+                # check point has some content
+                if hSyst.GetBinContent(xbin,ybin) == 0: continue
+
                 # reset bins
                 hSyst.SetBinContent(xbin,ybin,0)
                 hSyst.SetBinError(xbin,ybin,0)
@@ -65,28 +73,34 @@ def getSystHist(tfile, hname, syst = "Xsec"):
 
                 DevUp, DevDn = -999, -999
 #                print DevUp, DevDn
-                #print len(histDict), "variations taken into account; determining envelope"
+                #print len(hists), "variations taken into account; determining envelope"
                 collectDevs = []
-                for key, value in histDict.iteritems():
-                    Dev = abs(value.GetBinContent(xbin,ybin))
-                    collectDevs.append(Dev)
+                #for key, value in hists.iteritems():
+                for hist in hists:
+                    Dev = abs(hist.GetBinContent(xbin,ybin))
+
                     if DevUp==-999 or Dev>DevUp: DevUp=Dev
                     if DevDn==-999 or Dev<DevDn: DevDn=Dev
-                    if Dev>maxDev:
-                        maxDev = Dev
-#                        print key, Dev, hname
+                    if Dev>maxDev: maxDev = Dev
+                    #print Dev, hname
+                    if "RMS" in syst:
+                        collectDevs.append(Dev)
 
-                a = array(collectDevs)
 #                print collectDevs, a.mean(), a.std()
                 maxDev = (DevUp-DevDn)/2#WARNING: HERE DOING ONLY AN ENVELOPE OF THE VARIATIONS!
                 #print DevUp, DevDn, maxDev
-                if "RMS" in syst: maxDev = a.std()
+                if "RMS" in syst:
+                    a = array(collectDevs)
+                    maxDev = a.std()
 
                 # Make relative uncertainty
-                maxDev /= max(0.0001,hSyst.GetBinContent(bin,ybin)
+                maxDev /= max(0.0001,hNorm.GetBinContent(xbin,ybin))
 
                 # limit max deviation to 200%
                 maxDev = min(maxDev,2.0)
+
+                # put at least 0.00001 as dummy
+                maxDev = max(maxDev,0.00001)
 
                 hSyst.SetBinContent(xbin,ybin,maxDev)
                 hSyst.SetBinError(xbin,ybin,maxErr)
@@ -95,6 +109,7 @@ def getSystHist(tfile, hname, syst = "Xsec"):
         return (hSyst,hSyst,hSyst)
 
     else:
+        ## Do normal variation from up/down
 
         upName = hname + '_' + syst + '-Up'
         dnName = hname + '_' + syst + '-Down'
