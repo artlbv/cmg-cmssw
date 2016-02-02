@@ -167,10 +167,10 @@ def getSystHist(tfile, hname, syst = "Xsec"):
         #return hSyst
         return (hSyst,hUpVar,hDownVar)
 
-def makeSystHists(fileList):
+def makeSystHists(fileList, newFile = False):
 
     # filter
-    fileList = [fname for fname in fileList if 'NB3' not in fname]
+    #fileList = [fname for fname in fileList if 'NB3' not in fname]
 
     hnames = ["T1tttt_Scan"] # process name
     #hnames = ["EWK"] # process name
@@ -185,7 +185,8 @@ def makeSystHists(fileList):
     #systNames = ["topPt"]
     #systNames = ["Wxsec"]
     #systNames = ["TTVxsec"]
-    systNames = ["ScaleMatchVar-Env"]
+    #systNames = ["ScaleMatchVar-Env"]
+    systNames = ["Scale-Env"]
     #systNames = ["PDFUnc-RMS"]
     #systNames = ["JEC"]
     #systNames = ["DLSlope"]
@@ -193,55 +194,54 @@ def makeSystHists(fileList):
     #systNames = ["JER"]
     #systNames = ["Wpol"]
     #systNames = ["btagHF","btagLF"]
-    systNames = ["ISR"]
+    #systNames = ["ISR"]
 
     #bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB']
     #bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB','Kappa','Rcs_MB','Rcs_SB']
     bindirs = getDirNames(fileList[0])
     print "Found those dirs:", bindirs
 
-    # dir to store
-    sysdir = os.path.dirname(fileList[0]) + "/syst/"
-    if not os.path.exists(sysdir): os.makedirs(sysdir)
+    bindirs = [d + "/" for d in bindirs]# + [""]
+
+    # Store syst hists to separate files?
+    newFile = False
+
+    if newFile:
+        # dir to store
+        sysdir = os.path.dirname(fileList[0]) + "/syst/"
+        if not os.path.exists(sysdir): os.makedirs(sysdir)
 
     for fname in fileList:
-        tfile = TFile(fname,"UPDATE")
-        #tfile = TFile(fname,"READ")
-        #sysname = sysdir + os.path.basename(fname)
-        #sfile = TFile(sysname,"RECREATE")
+        if newFile:
+            tfile = TFile(fname,"READ")
+            sysname = sysdir + os.path.basename(fname)
+            sfile = TFile(sysname,"RECREATE")
+        else:
+            tfile = TFile(fname,"UPDATE")
 
         for bindir in bindirs:
-
             for hname in hnames:
                 for syst in systNames:
-                    if getSystHist(tfile, bindir+'/'+ hname, syst)!=0:
-                        (hSyst,hUp,hDown) = getSystHist(tfile, bindir+'/'+ hname, syst)
+                    ret = getSystHist(tfile, bindir+hname, syst)
 
-                        if hSyst:
-                            tfile.cd(bindir)
-                        #sfile.mkdir(bindir)
-                        #sfile.cd(bindir)
-                            hSyst.Write("",TObject.kOverwrite)
-                        #hUp.Write("",TObject.kOverwrite)
-                        #hDown.Write("",TObject.kOverwrite)
+                    if ret == 0:
+                        print "Failed for", fname
+                        continue
 
-            '''
-            # create Syst folder structure
-            if not tfile.GetDirectory(bindir+"/Syst"):
-                tfile.mkdir(bindir+"/Syst")
+                    (hSyst,hUp,hDown) = ret
 
-                for hname in hnames:
-                    for syst in systNames:
+                    if newFile:
+                        sfile.mkdir(bindir)
+                        sfile.cd(bindir)
+                    else:
+                        tfile.cd(bindir)
 
-                        tfile.cd(bindir+"/Syst")
-                        hSyst = getSystHist(tfile, bindir+'/'+ hname, syst)
-                        hSyst.Write()
-            else:
-                print 'Already found syst'
-            '''
+                    hSyst.Write("",TObject.kOverwrite)
+                    #hUp.Write("",TObject.kOverwrite)
+                    #hDown.Write("",TObject.kOverwrite)
 
         tfile.Close()
-        #sfile.Close()
+        if newFile: sfile.Close()
 
     return 1
 
