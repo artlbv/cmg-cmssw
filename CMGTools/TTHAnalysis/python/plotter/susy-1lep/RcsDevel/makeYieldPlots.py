@@ -7,10 +7,10 @@ from ROOT import *
 ## ROOT STYLE
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
-gStyle.SetPadTopMargin(0.075)
+gStyle.SetPadTopMargin(0.09)
 gStyle.SetPadLeftMargin(0.05)
 gStyle.SetPadRightMargin(0.025)
-gStyle.SetPadBottomMargin(0.25)
+gStyle.SetPadBottomMargin(0.3)
 gStyle.SetLegendBorderSize(0)
 
 ## CMS LUMI
@@ -90,13 +90,17 @@ def doLegend(pos = "TM",nEntr = None):
         leg = TLegend(1-gStyle.GetPadRightMargin()-0.35,0.55,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
         #leg = TLegend(1-gStyle.GetPadRightMargin()-0.35,0.65,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
         #leg = TLegend(1-gStyle.GetPadRightMargin()-0.4,0.65,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
+    elif pos == "TLC":
+        leg = TLegend(gStyle.GetPadLeftMargin(),0.55,gStyle.GetPadLeftMargin()+0.35,1-gStyle.GetPadTopMargin())
+    else:
+        leg = TLegend(1-gStyle.GetPadRightMargin()-0.35,0.55,1-gStyle.GetPadRightMargin(),1-gStyle.GetPadTopMargin())
 
     leg.SetBorderSize(1)
     leg.SetTextFont(62)
     #leg.SetTextSize(0.03321678)
     leg.SetTextSize(0.05)
 
-    if pos != "TRC":
+    if pos != "TRC" and pos != "TLC":
         leg.SetLineColor(0)
         leg.SetLineStyle(0)
         leg.SetLineWidth(0)
@@ -356,8 +360,8 @@ def prepRatio(hist, keepStyle = False):
 
     hist.GetYaxis().CenterTitle()
     hist.GetYaxis().SetNdivisions(505)
-    hist.GetYaxis().SetTitleSize(0.08)
-    hist.GetYaxis().SetTitleOffset(0.3)
+    hist.GetYaxis().SetTitleSize(0.1)
+    hist.GetYaxis().SetTitleOffset(0.2)
     hist.GetYaxis().SetLabelSize(0.1)
     hist.GetXaxis().SetLabelOffset(0.018)
     hist.GetXaxis().SetLabelSize(0.1)
@@ -709,6 +713,8 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
 
     #ymin = 0
     #ymax = min(ymax, 1.5)
+    #ymax = 0.8
+    #ymin = 0
 
     # Common plot option
     plotOpt = ""#X+Y+"
@@ -799,9 +805,21 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
 
         if "same" not in plotOpt: plotOpt += "same"
 
+    # REDRAW AXES on top
+    gPad.RedrawAxis()
+
+    # LEGEND
     #canv.BuildLegend()
     leg.Draw()
     SetOwnership(leg,0)
+
+    '''
+    # Pave text
+    tex = TLatex(7.18,0.42,"T1t^{4} 1.2/0.8");
+    tex.SetLineWidth(2);
+    tex.Draw();
+    SetOwnership(tex,0)
+    '''
 
     '''
     # Add right axis
@@ -836,9 +854,6 @@ def plotHists(cname, histList, ratio = None, legPos = "TM", width = 800, height 
         canv.Update()
 
         if logY: canv.SetLogy()
-
-
-    #gPad.RedrawAxis()
 
     return canv
 
