@@ -233,7 +233,7 @@ class EventVars1L_base:
 
         self.branches = [
             ## general event info
-            'Run','Lumi','Xsec',("Event","I"),
+            'Run','Lumi','Xsec',("Event","l"),
             ## leptons
             'nLep', 'nVeto',
             'nEl','nMu',
