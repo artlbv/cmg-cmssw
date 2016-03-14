@@ -10,7 +10,8 @@ if __name__ == "__main__":
 
     yp.CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
     #yp.CMS_lumi.lumi_13TeV = "MC"
-    yp.CMS_lumi.extraText = "Simulation"
+    #yp.CMS_lumi.extraText = "Simulation"
+    yp.CMS_lumi.extraText = "Preliminary"
 
     ## remove '-b' option
     if '-b' in sys.argv:
@@ -214,6 +215,7 @@ if __name__ == "__main__":
             hists.append(hist)
 
         #for hist in hists: print hist.GetName()
+        hists[0].GetYaxis().CenterTitle(0)
 
         # make stack/total syst hists
         #total = yp.getTotal(hists)
@@ -226,7 +228,10 @@ if __name__ == "__main__":
         # save hists
         allhists += hists + [hCentral,hCentralUncert,stack, sqHist]
 
-        canv = yp.plotHists(var+"_"+signame,[stack,sqHist],[hCentral,hCentralUncert],"TRC", 1200, 600)
+        hCentral.GetYaxis().SetRangeUser(0,1.25)
+
+        #canv = yp.plotHists(var+"_"+signame,[stack,sqHist],[hCentral,hCentralUncert],"TRC", 1200, 600)
+        canv = yp.plotHists(var+"_"+signame,[stack,sqHist],[hCentral,hCentralUncert],"TLC", 1200, 600, nCols = 2)
         canv.SetName(canv.GetName()+"_Syst")
     #    canv = yp.plotHists(var+"_"+signame+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
     #    canv = yp.plotHists(var+"_"+signame+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)

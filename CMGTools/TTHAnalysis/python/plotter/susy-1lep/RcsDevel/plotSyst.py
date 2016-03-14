@@ -10,7 +10,8 @@ if __name__ == "__main__":
 
     #yp.CMS_lumi.lumi_13TeV = str(2.1) + " fb^{-1}"
     yp.CMS_lumi.lumi_13TeV = ""
-    yp.CMS_lumi.extraText = "Simulation"
+    #yp.CMS_lumi.extraText = "Simulation"
+    yp.CMS_lumi.extraText = "Preliminary"
 
     ## remove '-b' option
     if '-b' in sys.argv:
@@ -178,9 +179,10 @@ if __name__ == "__main__":
         print hCentral.GetBinContent(bin), hCentralUncert.GetBinContent(bin)
         print hCentral.GetBinError(bin), hCentralUncert.GetBinError(bin)
     '''
+    hCentral.GetYaxis().SetRangeUser(0,2.19)
 
-    #canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TM", 1200, 600, nCols = 5)
-    canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TRC", 1200, 600)
+    canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TLC", 1200, 600, nCols = 2)
+    #canv = yp.plotHists(var+"_"+samp+"_Syst",[stack,sqHist],[hCentral,hCentralUncert],"TRC", 1200, 600)
 #    canv = yp.plotHists(var+"_"+samp+"_Syst",[sqHist]+hists,[hCentral,hCentralUncert],"TM", 1200, 600)
 #    canv = yp.plotHists(var+"_"+samp+"_Stat",[stack,sqHist],hCentral,"TM", 1200, 600)
 
