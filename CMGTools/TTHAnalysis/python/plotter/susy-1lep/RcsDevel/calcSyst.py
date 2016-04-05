@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #import re, sys, os, os.path
 
+from numpy import *
 import glob, os, sys, math
 from math import hypot
 from ROOT import *
@@ -35,83 +36,147 @@ def getHnames(fname,tdir):
 
 def getSystHist(tfile, hname, syst = "Xsec"):
 
-    upName = hname + '_' + syst + '-Up'
-    dnName = hname + '_' + syst + '-Down'
+    #print tfile, hname, syst
+    if "Env" in syst or "RMS" in syst:# or "Scale" in syst:
+        hNorm = tfile.Get(hname)
+        #if hNorm: print "", #"got it", hname
+        if not hNorm:#else:
+            print "ERROR!", hname
+            return 0
+#        print hNorm.GetName() + '_' + syst + '_syst'
+        hSyst = hNorm.Clone(hNorm.GetName() + '_' + syst + '_syst')
+        hists = []
+        maxrange = 200 if "RMS" in syst else 10
+        for i in range (0,maxrange):
+            hnameIter = hname + '_' + syst + str(i)
+            tempImport = tfile.Get(hnameIter)
+            #print hnameIter
+            if tempImport:
+                hVar = hNorm.Clone(hNorm.GetName() + '_' + syst + '_Var'+str(i))
+                hVar.Add(tempImport,-1)
+                hists.append(hVar)
+        # find maximum deviations
+        nbinsX = hSyst.GetNbinsX()+1
+        nbinsY = hSyst.GetNbinsX()+1
+        for xbin in range(1,nbinsX):
+            for ybin in range(1,nbinsY):
 
-    #print tfile, hname, upName, dnName
+                # check point has some content
+                if hSyst.GetBinContent(xbin,ybin) == 0: continue
 
-    hNorm = tfile.Get(hname)
-    hUp = tfile.Get(upName)
-    hDown = tfile.Get(dnName)
+                # reset bins
+                hSyst.SetBinContent(xbin,ybin,0)
+                hSyst.SetBinError(xbin,ybin,0)
 
-    if not hUp and hDown:
-        # Replace missing Up with Down
-        hUp = hDown
-    elif not hDown and hUp:
-        # Replace missing Down with Up
-        hDown = hUp
-    elif not hUp or not hDown:
-        print 'No systematics found!'
-        print tfile, hname, upName, dnName
-        return 0
+                maxDev = 0
+                maxErr = 0
 
-    hSyst = hNorm.Clone(hNorm.GetName() + '_' + syst + '_syst')
+                DevUp, DevDn = -999, -999
+#                print DevUp, DevDn
+                #print len(hists), "variations taken into account; determining envelope"
+                collectDevs = []
+                #for key, value in hists.iteritems():
+                for hist in hists:
+                    Dev = abs(hist.GetBinContent(xbin,ybin))
 
-    hUpVar = hNorm.Clone(hNorm.GetName() + '_' + syst + '_upVar')
-    hUpVar.Add(hUp,-1)
+                    if DevUp==-999 or Dev>DevUp: DevUp=Dev
+                    if DevDn==-999 or Dev<DevDn: DevDn=Dev
+                    if Dev>maxDev: maxDev = Dev
+                    #print Dev, hname
+                    if "RMS" in syst:
+                        collectDevs.append(Dev)
 
-    hDownVar = hNorm.Clone(hNorm.GetName() + '_' + syst + '_downVar')
-    hDownVar.Add(hDown,-1)
+#                print collectDevs, a.mean(), a.std()
+                maxDev = (DevUp-DevDn)/2#WARNING: HERE DOING ONLY AN ENVELOPE OF THE VARIATIONS!
+                #print DevUp, DevDn, maxDev
+                if "RMS" in syst:
+                    a = array(collectDevs)
+                    maxDev = a.std()
 
-    # find maximum deviations
-    for xbin in range(1,hSyst.GetNbinsX()+1):
-        for ybin in range(1,hSyst.GetNbinsY()+1):
+                # Make relative uncertainty
+                maxDev /= max(0.0001,hNorm.GetBinContent(xbin,ybin))
 
-            # check point has some content
-            if hSyst.GetBinContent(xbin,ybin) == 0: continue
+                # limit max deviation to 200%
+                maxDev = min(maxDev,2.0)
 
-            # reset bins
-            hSyst.SetBinContent(xbin,ybin,0)
-            hSyst.SetBinError(xbin,ybin,0)
+                # put at least 0.00001 as dummy
+                maxDev = max(maxDev,0.00001)
 
-            maxDev = 0
-            maxErr = 0
+                hSyst.SetBinContent(xbin,ybin,maxDev)
+                hSyst.SetBinError(xbin,ybin,maxErr)
+                if maxDev>1 and "Kappa" in hname: print hname, maxDev, xbin, ybin, tfile
+        #return hSyst
+        return (hSyst,hSyst,hSyst)
 
-            # fill maximum deviation
-#            if abs(hUpVar.GetBinContent(xbin,ybin)) > abs(hDownVar.GetBinContent(xbin,ybin)):
-#                maxDev = abs(hUpVar.GetBinContent(xbin,ybin))
-#            else:
-#                maxDev = abs(hDownVar.GetBinContent(xbin,ybin))
+    else:
+        ## Do normal variation from up/down
 
-            #fill with average deviation
-            maxDev = 1/2.*(math.fabs(hUpVar.GetBinContent(xbin,ybin))+math.fabs(hDownVar.GetBinContent(xbin,ybin)))
-            #maxDev = 1/2 * (abs(hUpVar.GetBinContent(xbin,ybin))+ abs(hDownVar.GetBinContent(xbin,ybin)))
+        upName = hname + '_' + syst + '-Up'
+        dnName = hname + '_' + syst + '-Down'
 
-            if hNorm.GetBinContent(xbin,ybin) > 0:
-                maxDev /= hNorm.GetBinContent(xbin,ybin)
-            #    maxErr = hypot(maxErr,hNorm.GetBinError(xbin,ybin))
+        #print tfile, hname, upName, dnName
 
-            # limit max deviation to 200%
-            maxDev = min(maxDev,2.0)
-            # put at least 0.00001 as dummy
-            maxDev = max(maxDev,0.00001)
+        hNorm = tfile.Get(hname)
+        hUp = tfile.Get(upName)
+        hDown = tfile.Get(dnName)
 
-            hSyst.SetBinContent(xbin,ybin,maxDev)
-            hSyst.SetBinError(xbin,ybin,maxErr)
+        if not hUp or not hDown:
+            print 'No systematics found!'
+            print tfile, hname, upName, dnName
+            return 0
 
-    #return hSyst
-    return (hSyst,hUpVar,hDownVar)
+        hSyst = hNorm.Clone(hNorm.GetName() + '_' + syst + '_syst')
 
-def makeSystHists(fileList):
+        hUpVar = hNorm.Clone(hNorm.GetName() + '_' + syst + '_upVar')
+        hUpVar.Add(hUp,-1)
+
+        hDownVar = hNorm.Clone(hNorm.GetName() + '_' + syst + '_downVar')
+        hDownVar.Add(hDown,-1)
+
+        # find maximum deviations
+        for xbin in range(1,hSyst.GetNbinsX()+1):
+            for ybin in range(1,hSyst.GetNbinsY()+1):
+
+                # reset bins
+                hSyst.SetBinContent(xbin,ybin,0)
+                hSyst.SetBinError(xbin,ybin,0)
+
+                maxDev = 0
+                maxErr = 0
+
+                # fill maximum deviation
+    #            if abs(hUpVar.GetBinContent(xbin,ybin)) > abs(hDownVar.GetBinContent(xbin,ybin)):
+    #                maxDev = abs(hUpVar.GetBinContent(xbin,ybin))
+    #            else:
+    #                maxDev = abs(hDownVar.GetBinContent(xbin,ybin))
+
+                #fill with average deviation
+                maxDev = 1/2.*(math.fabs(hUpVar.GetBinContent(xbin,ybin))+math.fabs(hDownVar.GetBinContent(xbin,ybin)))
+                #maxDev = 1/2 * (abs(hUpVar.GetBinContent(xbin,ybin))+ abs(hDownVar.GetBinContent(xbin,ybin)))
+
+                if hNorm.GetBinContent(xbin,ybin) > 0:
+                    maxDev /= hNorm.GetBinContent(xbin,ybin)
+                #    maxErr = hypot(maxErr,hNorm.GetBinError(xbin,ybin))
+
+                # limit max deviation to 200%
+                maxDev = min(maxDev,2.0)
+
+                hSyst.SetBinContent(xbin,ybin,maxDev)
+                hSyst.SetBinError(xbin,ybin,maxErr)
+
+        #return hSyst
+        return (hSyst,hUpVar,hDownVar)
+
+def makeSystHists(fileList, newFile = False):
 
     # filter
     #fileList = [fname for fname in fileList if 'NB3' not in fname]
 
-    #hnames = ["T1tttt_Scan"] # process name
+    hnames = ["T1tttt_Scan"] # process name
     #hnames = ["EWK"] # process name
-    hnames = ["EWK","TTJets","WJets","SingleTop","DY","TTV"] # process name
     #hnames = ['T_tWch','TToLeptons_tch','TBar_tWch', 'EWK', 'TToLeptons_sch'] # process name
     #hnames = ["TTJets","WJets","SingleTop","DY","TTV"] # process name
+    #hnames = ["EWK","TTJets","WJets","SingleTop","DY","TTV"] # process name
     #hnames = getHnames(fileList[0],'SR_MB') # get process names from file
     #print 'Found these hists:', hnames
 
@@ -120,7 +185,9 @@ def makeSystHists(fileList):
     #systNames = ["topPt"]
     #systNames = ["Wxsec"]
     #systNames = ["TTVxsec"]
-    systNames = ["lepSF"]
+    #systNames = ["ScaleMatchVar-Env"]
+    systNames = ["Scale-Env"]
+    #systNames = ["PDFUnc-RMS"]
     #systNames = ["JEC"]
     #systNames = ["DLSlope"]
     #systNames = ["DLConst"]
@@ -131,54 +198,50 @@ def makeSystHists(fileList):
 
     #bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB']
     #bindirs =  ['SR_MB','CR_MB','SR_SB','CR_SB','Kappa','Rcs_MB','Rcs_SB']
-    bindirs = getDirNames(fileList[0])# + [""]
+    bindirs = getDirNames(fileList[0])
     print "Found those dirs:", bindirs
 
-    # dir to store
-    sysdir = os.path.dirname(fileList[0]) + "/syst/"
-    if not os.path.exists(sysdir): os.makedirs(sysdir)
+    bindirs = [d + "/" for d in bindirs]# + [""]
+
+    # Store syst hists to separate files?
+    newFile = False
+
+    if newFile:
+        # dir to store
+        sysdir = os.path.dirname(fileList[0]) + "/syst/"
+        if not os.path.exists(sysdir): os.makedirs(sysdir)
 
     for fname in fileList:
-        tfile = TFile(fname,"UPDATE")
-        #tfile = TFile(fname,"READ")
-        #sysname = sysdir + os.path.basename(fname)
-        #sfile = TFile(sysname,"RECREATE")
+        if newFile:
+            tfile = TFile(fname,"READ")
+            sysname = sysdir + os.path.basename(fname)
+            sfile = TFile(sysname,"RECREATE")
+        else:
+            tfile = TFile(fname,"UPDATE")
 
         for bindir in bindirs:
-
             for hname in hnames:
                 for syst in systNames:
+                    ret = getSystHist(tfile, bindir+hname, syst)
 
-                    if bindir != "":
-                        (hSyst,hUp,hDown) = getSystHist(tfile, bindir+'/'+ hname, syst)
+                    if ret == 0:
+                        print "Failed for", fname
+                        continue
+
+                    (hSyst,hUp,hDown) = ret
+
+                    if newFile:
+                        sfile.mkdir(bindir)
+                        sfile.cd(bindir)
                     else:
-                        (hSyst,hUp,hDown) = getSystHist(tfile, hname, syst)
-
-                    if hSyst:
                         tfile.cd(bindir)
-                        #sfile.mkdir(bindir)
-                        #sfile.cd(bindir)
-                        hSyst.Write("",TObject.kOverwrite)
-                        #hUp.Write("",TObject.kOverwrite)
-                        #hDown.Write("",TObject.kOverwrite)
 
-            '''
-            # create Syst folder structure
-            if not tfile.GetDirectory(bindir+"/Syst"):
-                tfile.mkdir(bindir+"/Syst")
-
-                for hname in hnames:
-                    for syst in systNames:
-
-                        tfile.cd(bindir+"/Syst")
-                        hSyst = getSystHist(tfile, bindir+'/'+ hname, syst)
-                        hSyst.Write()
-            else:
-                print 'Already found syst'
-            '''
+                    hSyst.Write("",TObject.kOverwrite)
+                    #hUp.Write("",TObject.kOverwrite)
+                    #hDown.Write("",TObject.kOverwrite)
 
         tfile.Close()
-        #sfile.Close()
+        if newFile: sfile.Close()
 
     return 1
 
