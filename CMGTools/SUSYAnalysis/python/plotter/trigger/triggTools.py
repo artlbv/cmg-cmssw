@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import math
 from ROOT import *
 
 #import tdrstyle
@@ -48,6 +49,22 @@ met_bins_2d = range(0,200,25) + range(200,400,100) + range(400,700,200) # high s
 ht_bins = range(200,400,50) + range(400,1000,100) + range(1000,1750,250) # high stat
 #ht_bins = range(0,200,40) + range(200,400,100) + range(400,1000,300) + range(1000,1750,250) # low stat
 ht_bins_2d = range(0,200,10) + range(200,400,50) + range(400,1000,100) + range(1000,1750,250) # high stat
+
+def getLogBins(nbinsx,xmin,xmax):
+    logxmin = math.log10(xmin)
+    logxmax = math.log10(xmax)
+    binwidth = (logxmax-logxmin)/nbinsx
+    xbins = [ xmin + math.pow(10,logxmin+x*binwidth) for x in range(1,nbinsx+1)]
+    xbins.sort(key=int)
+    #binc = array('d', xbins)
+
+    return xbins
+
+pt_bins = getLogBins(30,0.9,1000)
+lt_bins = getLogBins(20,9,1000)
+ht_bins = getLogBins(30,30,2000)
+
+print ht_bins
 
 def cleanName(line):
 
@@ -138,7 +155,7 @@ def cutsToString(cutList):
 def saveCanvases(canvList, pdir = '', extraName = '', _batchMode = True):
 
     ## save canvases to file
-    extList = ['.png','.pdf']
+    extList = ['.png','.pdf','.root','.C']
 
     prefix = ''
     if extraName != '':
