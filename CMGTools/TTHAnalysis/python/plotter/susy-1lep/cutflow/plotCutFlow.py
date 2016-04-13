@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 from ROOT import *
 
 ## ROOT STYLE
@@ -15,16 +16,16 @@ gStyle.SetLegendBorderSize(0)
 import CMS_lumi
 
 CMS_lumi.writeExtraText = 1
-CMS_lumi.extraText = "Preliminary"
+CMS_lumi.extraText = "Simulation"
+CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
+
 iPos = 0#11
 if( iPos==0 ): CMS_lumi.relPosX = 0.15
 
-CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
-CMS_lumi.extraText = "Preliminary"
 
 
 ## GLOBAL
-colorDict = {'TTJets': kBlue-4,'TTdiLep':kBlue-4,'TTsemiLep':kBlue-2,'WJets':kGreen-2,
+colorDict = {'TTJets': kBlue-4,'TTdiLep':kBlue-7,'TTsemiLep':kBlue-2,'WJets':kGreen-2,
              'QCD':kCyan-6,'SingleT':kViolet+5,'DY':kRed-6,'TTV':kOrange-3,'data':1,'background':2,'EWK':3,
              "T1tttt_120": kYellow-6, "T1tttt_150": kMagenta}
 
@@ -33,6 +34,7 @@ sampLabs = {'TTJets': "t#bar{t}",'TTdiLep': "t#bar{t}#rightarrowl#bar{l}",'TTsem
              "T1tttt_120": "T1tttt (1200,800)", "T1tttt_150": "T1tttt (1500,100)"}
 
 _batchMode = False
+_alpha = 0.75
 
 def getSampColor(name):
 
@@ -73,6 +75,7 @@ def readCF(fname):
 
         # first line: get number of columns
         if "CUT" in lines[0]:
+            lines[0] = lines[0].replace("ALL ","ALL")
             names = lines[0].split()
             print names
         else:
@@ -85,9 +88,11 @@ def readCF(fname):
 
         # loop over content
         for line in lines[2:]:
+            line = line.replace("entry point","Trigger__Like")
+
             cols = line.split()
 
-            if "#" in line: continue
+            if line[0] == "#": continue
 
             if len(cols) != len(names):
                 print len(cols), len(names)
@@ -134,6 +139,12 @@ def makeHists(cfdict):
         #hist = TH1F("b","h",nbins,-0.5,nbins+0.5)
 
         for ibin,label in enumerate(labels):
+
+            label = label.replace("__"," ")
+            label = label.replace("\,"," ")
+            label = label.replace("#geq"," #geq ")
+            #print label
+
             hist.GetXaxis().SetBinLabel(ibin+1,label)
             hist.SetBinContent(ibin+1,conts[ibin])
             hist.SetBinError(ibin+1,0)
@@ -142,7 +153,9 @@ def makeHists(cfdict):
             col = getSampColor(name)
             hist.SetLineColor(col)
             hist.SetMarkerColor(col)
-            hist.SetFillColor(col)
+            #hist.SetFillColor(col)
+            if _batchMode == False: hist.SetFillColor(col)
+            else: hist.SetFillColorAlpha(col,_alpha)
             #hist.SetFillStyle(3002)
             hist.SetFillStyle(1001)
 
@@ -196,9 +209,17 @@ def doLegend(pos = "TM",nEntr = None):
 
 if __name__ == "__main__":
 
-    fname = "cf_test.txt"
-    #fname = "mycf.txt"
+    ## remove '-b' option
+    if '-b' in sys.argv:
+        sys.argv.remove('-b')
+        _batchMode = True
 
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+        print '# fname is', fname
+    else:
+        fname = "cf_test.txt"
+    #fname = "mycf.txt"
 
     cfd = readCF(fname)
     print cfd.keys()
@@ -210,7 +231,7 @@ if __name__ == "__main__":
     #samps = ['T1tttt_150', 'TTsemiLep', 'DY', 'TTdiLep', 'TTV', 'SingleT', 'T1tttt_120', 'WJets', 'QCD']
     #samps = ['DY','TTV','QCD','SingleT','WJets','TTdiLep','TTsemiLep']
     #samps = ['DY','TTV','SingleT','WJets','TTdiLep','TTsemiLep','QCD']
-    samps = ['TTV','DY','QCD','SingleT','WJets','TTdiLep','TTsemiLep',"TTJets"]
+    samps = ['TTV','DY','SingleT','QCD','WJets','TTdiLep','TTsemiLep',"TTJets"]
 
     # make hist list
     hlist = []
@@ -219,7 +240,7 @@ if __name__ == "__main__":
         if samp in hdict: hlist.append(hdict[samp])
 
     # make sig hist list
-    sigs = ["T1tttt_150","T1tttt_120"]
+    sigs = ["T1tttt_120","T1tttt_150"]
     shlist = []
     for samp in sigs:
         if samp in hdict: shlist.append(hdict[samp])
@@ -241,7 +262,8 @@ if __name__ == "__main__":
 
     hdummy = hlist[0]
     hdummy.Draw()
-    hdummy.GetYaxis().SetRangeUser(0.5*ymin,50*ymax)
+    #hdummy.GetYaxis().SetRangeUser(0.5*ymin,5*ymax)
+    hdummy.GetYaxis().SetRangeUser(5,100000000)
 
     stack = getStack(hlist)
     stack.Draw("same")
@@ -294,5 +316,9 @@ if __name__ == "__main__":
     gPad.RedrawAxis()
     CMS_lumi.CMS_lumi(canv, 4, iPos)
 
-    raw_input("continue...")
+    canv.SaveAs("plots_"+fname.replace(".txt",".root"))
+    canv.SaveAs("plots_"+fname.replace(".txt",".pdf"))
+
+    if _batchMode == False:
+        raw_input("continue...")
 
