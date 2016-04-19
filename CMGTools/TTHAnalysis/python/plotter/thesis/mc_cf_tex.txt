@@ -1,0 +1,9 @@
+Single__Lepton		: nLep == 1 && Lep_pt > 25 && Selected == 1
+#Electron__Chan. 	: nEl == 1
+Muon__Chan.		: nMu == 1
+Veto__Leptons		: nVeto == 0
+N_{jets}\#geq6		: nJets30Clean >= 6
+2.Jet__p_{T}>\,80\,GeV	: Jet2_pt > 80
+N_{btags}\#geq1		: nBJet >= 1
+H{T}\#geq500\,GeV		: HT > 500
+L{T}\#geq250\,GeV		: LT > 250
