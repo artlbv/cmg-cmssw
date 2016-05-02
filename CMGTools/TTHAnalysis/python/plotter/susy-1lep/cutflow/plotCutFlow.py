@@ -28,9 +28,9 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.15
 colorDict = {'TTJets': kBlue-4,'TTdiLep':kBlue-7,'TTsemiLep':kBlue-2,'WJets':kGreen-2,
              'QCD':kCyan-6,'SingleT':kViolet+5,'DY':kRed-6,'TTV':kOrange-3,'data':1,'background':2,'EWK':3,
              "T1tttt_120": kYellow-6, "T1tttt_150": kMagenta}
-
-sampLabs = {'TTJets': "t#bar{t}",'TTdiLep': "t#bar{t}#rightarrowl#bar{l}",'TTsemiLep':"t#bar{t}#rightarrowl/#bar{l}",
-            'WJets':"W + jets", 'QCD': "QCD", 'SingleT': "t/#bar{t} + jets",'DY':"DY + jets",'TTV':"t#bar{t}V",'data':"data",
+#{'TTJets': "t#bar{t}",'TTdiLep': "t#bar{t}#rightarrowl#bar{l}",'TTsemiLep':"t#bar{t}#rightarrowl/#bar{l}",
+sampLabs = {'TTJets': "t#bar{t}",'TTdiLep': "t#bar{t} ll + jets",'TTsemiLep':"t#bar{t} l + jets",
+            'WJets':"W + jets", 'QCD': "QCD", 'SingleT': "t/#bar{t}",'DY':"DY + jets",'TTV':"t#bar{t}V",'data':"data",
              "T1tttt_120": "T1tttt (1200,800)", "T1tttt_150": "T1tttt (1500,100)"}
 
 _batchMode = False
@@ -250,6 +250,7 @@ if __name__ == "__main__":
 
     canv = TCanvas("CutFlow","CutFlow",800,800)
     canv.SetLogy()
+    canv.SetTicks()
 
     plotOpt = "hist"
 
