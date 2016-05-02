@@ -91,7 +91,8 @@ jetAna.minLepPt = 10
 
 ## JEC
 jetAna.mcGT = "Summer15_25nsV6_MC"
-jetAna.dataGT = "Summer15_25nsV6_DATA"
+#jetAna.dataGT = "Summer15_25nsV6_DATA"
+jetAna.dataGT = "Summer15_25nsV7_DATA"
 
 # add also JEC up/down shifts corrections
 jetAna.addJECShifts = True
@@ -190,9 +191,9 @@ triggerFlagsAna.triggerBits = {
 #-------- HOW TO RUN
 isData = True # default, but will be overwritten below
 
-sample = 'MC'
+#sample = 'MC'
 #sample = 'data'
-#sample = 'Signal'
+sample = 'Signal'
 test = 0
 
 if sample == "MC":
@@ -263,7 +264,7 @@ elif sample == "Signal":
 
 	# modify skim
 	anyLepSkim.minLeptons = 0
-	ttHLepSkim.minLeptons = 1
+	ttHLepSkim.minLeptons = 0
 
 	# -- new 74X samples
 	#from CMGTools.RootTools.samples.samples_13TeV_74X import *
@@ -273,13 +274,14 @@ elif sample == "Signal":
 	#from CMGTools.SUSYAnalysis.samples.samples_13TeV_74X_Signals_desy import *
 	# MiniAODv2
 	#from CMGTools.SUSYAnalysis.samples.samples_13TeV_RunIISpring15MiniAODv2_desy import *
-	from CMGTools.SUSYAnalysis.samples.samples_13TeV_MiniAODv2_Signals_desy import *
+	from CMGTools.SUSYAnalysis.samples.samples_13TeV_MiniAODv2_Signals_AAA import *
 
 	# Benchmarks
 	#selectedComponents = [ T1tttt_mGo_1475to1500_mLSP_1to1250, T1tttt_mGo_1500to1525_mLSP_50to1125, T1tttt_mGo_1200_mLSP_1to825, T1tttt_mGo_1900to1950_mLSP_0to1450 ]
 	# Rest
 	#selectedComponents = mcSamplesT1tttt
-	selectedComponents = [T1tttt_mGo_1000to1050_mLSP_1to800, T1tttt_mGo_1225to1250_mLSP_1to1025, T1tttt_mGo_1325to1350_mLSP_1to1125, T1tttt_mGo_600to625_mLSP_250to375]
+	#selectedComponents = [T1tttt_mGo_1000to1050_mLSP_1to800, T1tttt_mGo_1225to1250_mLSP_1to1025, T1tttt_mGo_1325to1350_mLSP_1to1125, T1tttt_mGo_600to625_mLSP_250to375]
+	selectedComponents = [T1tttt_mGo_1475to1500_mLSP_1to1250, T1tttt_mGo_1200_mLSP_1to825 ]
 
 	if test==1:
 		# test a single component, using a single thread.
@@ -318,7 +320,7 @@ elif sample == "data":
 	isSignal = False
 
 	# modify skim
-	anyLepSkim.minLeptons = 0
+	anyLepSkim.minLeptons = 1
 	ttHLepSkim.minLeptons = 0
 
 	# central samples
@@ -332,7 +334,9 @@ elif sample == "data":
 	# MiniAOD V2
 	#selectedComponents = [ SingleElectron_Run2015D_05Oct, SingleMuon_Run2015D_05Oct, SingleElectron_Run2015D_Promptv4, SingleMuon_Run2015D_Promptv4]#, JetHT_Run2015D_05Oct,JetHT_Run2015D_Promptv4]
 	#selectedComponents = [ SingleMuon_Run2015D_05Oct, JetHT_Run2015D_05Oct, SingleElectron_Run2015D_Promptv4, SingleMuon_Run2015D_Promptv4, JetHT_Run2015D_Promptv4]
-	selectedComponents = [ JetHT_Run2015D_05Oct,JetHT_Run2015D_Promptv4 ]
+	#selectedComponents = [ JetHT_Run2015D_05Oct,JetHT_Run2015D_Promptv4 ]
+	selectedComponents = [ SingleElectron_Run2015D_05Oct, SingleMuon_Run2015D_05Oct, SingleElectron_Run2015D_Promptv4, SingleMuon_Run2015D_Promptv4]
+	#selectedComponents = [ SingleMuon_Run2015D_Promptv4 ]
 
 	if test!=0 and jsonAna in susyCoreSequence: susyCoreSequence.remove(jsonAna)
 
@@ -388,25 +392,26 @@ treeProducer = cfg.Analyzer(
 	collections = susySingleLepton_collections,
 	)
 
-## TEMPORARY
+## Recompute HBHE filters
 # HBHE filter analyzer
 from CMGTools.TTHAnalysis.analyzers.hbheAnalyzer import hbheAnalyzer
 hbheFilterAna = cfg.Analyzer(
     hbheAnalyzer, name = 'hbheAnalyzer',IgnoreTS4TS5ifJetInLowBVRegion=False
 )
 
-## SUSY Counter
-## histo counter
-#susyCoreSequence.insert(susyCoreSequence.index(skimAnalyzer),
-susyCoreSequence.insert(susyCoreSequence.index(susyScanAna)+1,
-			susyCounter)
-#susyCoreSequence.append(susyCounter)
+if isSignal:
+	## SUSY Counter
+	## histo counter
+	#susyCoreSequence.insert(susyCoreSequence.index(skimAnalyzer),
+	susyCoreSequence.insert(susyCoreSequence.index(susyScanAna)+1,
+				susyCounter)
+	#susyCoreSequence.append(susyCounter)
 
 
-# change scn mass parameters
-#susyCounter.SMS_mass_1 = "genSusyMGluino"
-#susyCounter.SMS_mass_2 = "genSusyMNeutralino"
-susyCounter.SMS_varying_masses = ['genSusyMGluino','genSusyMNeutralino']
+	# change scn mass parameters
+	#susyCounter.SMS_mass_1 = "genSusyMGluino"
+	#susyCounter.SMS_mass_2 = "genSusyMNeutralino"
+	susyCounter.SMS_varying_masses = ['genSusyMGluino','genSusyMNeutralino']
 
 #-------- SEQUENCE
 
@@ -414,7 +419,7 @@ sequence = cfg.Sequence(susyCoreSequence+[
 		LHEAna,
 		ttHEventAna,
 #		ttHSTSkimmer,
-		ttHHTSkimmer,
+#		ttHHTSkimmer,
 		hbheFilterAna,
 		treeProducer,
 #		susyCounter
@@ -423,9 +428,11 @@ sequence = cfg.Sequence(susyCoreSequence+[
 # remove skimming for Data or Signal
 if isData:# or isSignal :
 	sequence.remove(ttHHTSkimmer)
-	sequence.remove(ttHSTSkimmer)
+#	sequence.remove(ttHSTSkimmer)
 
 if isSignal:
+#	sequence.remove(ttHHTSkimmer)
+#	sequence.remove(ttHSTSkimmer)
 	sequence.remove(eventFlagsAna)
 	sequence.remove(hbheFilterAna)
 

@@ -6,7 +6,7 @@ _batchMode = False
 
 if __name__ == "__main__":
 
-    CMS_lumi.lumi_13TeV = str(2.1) + " fb^{-1}"
+    CMS_lumi.lumi_13TeV = str(2.3) + " fb^{-1}"
     CMS_lumi.extraText = "Simulation"
 
     ## remove '-b' option
@@ -74,18 +74,30 @@ if __name__ == "__main__":
         ratMu = getRatio(hMu,hMCmu)
         ratMu.GetYaxis().SetRangeUser(0,0.105)
 
+        '''
         canv = plotHists("QCD_vs_MC_Mu_"+cat,[hMCmu,hMu],ratMu)
         canv.SetName("Selected_poisson_QCD_vs_MC_Mu_"+cat)
         canvs.append(canv)
+        '''
 
         ratEle = getRatio(hEle,hMCele)
         ratEle.GetYaxis().SetRangeUser(0,0.35)
 
+        '''
         canv = plotHists("QCD_vs_MC_Ele_"+cat,[hMCele,hEle],ratEle)
         canv.SetName("Selected_poisson_QCD_vs_MC_Ele_"+cat)
         canvs.append(canv)
+        '''
 
-        canv = plotHists("QCD_vs_MC_"+cat,[hMCele,hMCmu,hEle,hMu],[ratEle,ratMu])
+        ## combined
+        ratEle.SetLineColor(hEle.GetLineColor())
+        ratEle.SetMarkerColor(hEle.GetMarkerColor())
+
+        ratMu.SetLineColor(hMu.GetLineColor())
+        ratMu.SetMarkerColor(hMu.GetMarkerColor())
+
+        #canv = plotHists("QCD_vs_MC_"+cat,[hMCele,hMCmu,hEle,hMu],[ratEle,ratMu],logY=True)
+        canv = plotHists("QCD_vs_MC_"+cat,[hMCele,hMCmu,hEle,hMu],[ratEle,ratMu],"TM", 1200, 600, logY = False)
         canv.SetName("Selected_poisson_QCD_vs_MC_"+cat)
         canvs.append(canv)
 
@@ -118,10 +130,11 @@ if __name__ == "__main__":
         if not _batchMode: raw_input("Enter any key to exit")
 
     # Save canvases
-    #exts = [".pdf",".png"]
-    exts = [".C"]
+    exts = [".pdf",".png",".root"]
+    #exts = [".pdf"]
 
-    odir = "BinPlots/QCD/lumi2p1fb/MCCompare/"
+    odir = "BinPlots/QCD/lumi2p2fb/MCCompare/" + cat + "/"
+    if not os.path.isdir(odir): os.makedirs(odir)
 
     for canv in canvs:
         for ext in exts:

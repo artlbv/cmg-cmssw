@@ -1,6 +1,0 @@
-QCD      : QCD_HT300to500	: xsec ; Label ="QCD", FillColor=ROOT.kCyan-6
-QCD      : QCD_HT500to700       : xsec ; Label ="QCD", FillColor=ROOT.kCyan-6
-QCD      : QCD_HT700to1000      : xsec ; Label ="QCD", FillColor=ROOT.kCyan-6
-QCD      : QCD_HT1000to1500     : xsec ; Label ="QCD", FillColor=ROOT.kCyan-6
-QCD      : QCD_HT1500to2000     : xsec ; Label ="QCD", FillColor=ROOT.kCyan-6
-QCD      : QCD_HT2000toInf      : xsec ; Label ="QCD", FillColor=ROOT.kCyan-6

@@ -12,7 +12,7 @@ from ROOT import *
 ## STYLE
 gStyle.SetOptTitle(0)
 gStyle.SetOptStat(0)
-gStyle.SetPadTopMargin(0.05)
+gStyle.SetPadTopMargin(0.06)
 gStyle.SetPadRightMargin(0.075)
 
 #gStyle.SetLabelFont(62)
@@ -26,8 +26,12 @@ import CMS_lumi
 
 CMS_lumi.writeExtraText = 1
 CMS_lumi.extraText = "Preliminary"
-iPos = 11
+iPos = 0
 if( iPos==0 ): CMS_lumi.relPosX = 0.1
+
+## Canvas sizes
+cwidth = 800
+cheigth = 800
 
 ## DICTS for storage
 _dhStore = {}
@@ -58,7 +62,8 @@ def decryptBinName(binname):
 
 def doLegend():
 
-    leg = TLegend(0.63,0.525,0.87,0.875)
+    #leg = TLegend(0.63,0.525,0.87,0.875)
+    leg = TLegend(0.6,0.525,0.9,0.875)
     leg.SetBorderSize(1)
     leg.SetTextFont(62)
     leg.SetTextSize(0.03321678)
@@ -221,7 +226,11 @@ def plotHists(binname = 'incl', inclTemplate = False, mcData = True, addHists = 
     _pdfStore['pdfTemplate'].plotOn(frame,RooFit.Components(argset2),RooFit.LineColor(4),RooFit.LineStyle(2),RooFit.Name('EWKfit'))
 
     # PLOT
-    canv = TCanvas("cQCDfit_"+binname,"canvas for bin "+binname,800,600)
+    canv = TCanvas("cQCDfit_"+binname,"canvas for bin "+binname,cwidth, cheigth)
+
+    if cheigth == cwidth:
+        frame.GetYaxis().SetTitleOffset(1.3)
+
     frame.Draw()
 
     if addHists:
@@ -408,7 +417,7 @@ def plotFratios(resList, isClosure = False):
     _hStore[hist.GetName()] = hist
     hist.SetStats(0)
 
-    canv=TCanvas(hist.GetName(),hist.GetTitle(),800,600)
+    canv=TCanvas(hist.GetName(),hist.GetTitle(),cwidth, cheigth)
 
     # style
     hist.SetMarkerStyle(20)
@@ -486,7 +495,8 @@ if __name__ == "__main__":
 
     ## Lumi setup
     if options.mcData:
-        CMS_lumi.lumi_13TeV = "MC"
+        #CMS_lumi.lumi_13TeV = "MC"
+        CMS_lumi.lumi_13TeV = str(options.lumi) + " fb^{-1}"
         CMS_lumi.extraText = "Simulation"
     else:
         CMS_lumi.lumi_13TeV = str(options.lumi) + " fb^{-1}"
@@ -511,8 +521,8 @@ if __name__ == "__main__":
     #binNames = ['NJ34']
     #binNames = ['NJ34','LT1_NJ34']
 
-    #binNames = ['LTi_NJ34','LT1_NJ34','LT2_NJ34','LT3_NJ34','LT4_NJ34']
-    binNames = ['LTi_NJ34','LT1_NJ34','LT1i_NJ34','LT2_NJ34','LT2i_NJ34','LT3_NJ34','LT3i_NJ34','LT4_NJ34']
+    binNames = ['LTi_NJ34','LT1_NJ34','LT2_NJ34','LT3_NJ34','LT4_NJ34']
+    #binNames = ['LTi_NJ34','LT1_NJ34','LT1i_NJ34','LT2_NJ34','LT2i_NJ34','LT3_NJ34','LT3i_NJ34','LT4_NJ34']
 
     #binNames += ['NJ45','LT0_NJ45','LT1_NJ45','LT2_NJ45','LT3_NJ45','LT4_NJ45']
     #binNames += ['NJ68','LT0_NJ68','LT1_NJ68','LT2_NJ68','LT3_NJ68','LT4_NJ68']
@@ -560,7 +570,7 @@ if __name__ == "__main__":
     outfile = TFile(plotDir+pureFname+'_plots'+suff+'.root','RECREATE')
     print 'Saving plots to file', outfile.GetName()
 
-    extList = ['.png','.pdf']
+    extList = ['.png','.pdf','.root']
 
     if options.verbose < 2:
         gROOT.ProcessLine("gErrorIgnoreLevel = kWarning;")

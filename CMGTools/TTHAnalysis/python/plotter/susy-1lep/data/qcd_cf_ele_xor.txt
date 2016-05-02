@@ -1,8 +1,6 @@
 == 1 tight lep: nLep == 1 && Lep_pt > 25 && nVeto == 0
-#sele: Selected != 0
+#sele: Selected == 1
 #anti: Selected == -1
-## update Anti definition
-#anti H/E >0.01: (Selected != -1) || (Selected == -1 && Lep_hOverE > 0.01)
 
 == 1 ele: nEl == 1
 
@@ -18,7 +16,8 @@ LT > 250: LT > 250
 HT > 500: HT > 500
 
 # Filters
-Filters: !isData || (isData && Flag_goodVertices && Flag_HBHENoiseFilter_fix && Flag_CSCTightHaloFilter && Flag_eeBadScFilter && Flag_HBHENoiseIsoFilter && passCSCFilterList )
+#Filters: !isData || (isData && Flag_goodVertices && Flag_HBHENoiseFilter_fix && Flag_CSCTightHaloFilter && Flag_eeBadScFilter && Flag_HBHENoiseIsoFilter && passCSCFilterList )
+Filters: !isData || (isData && passFilters)
 
 #Nb >= 1: nBJet >= 1
 Nb = 0: nBJet == 0

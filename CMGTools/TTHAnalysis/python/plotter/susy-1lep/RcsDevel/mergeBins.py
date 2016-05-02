@@ -107,7 +107,7 @@ def findMatchBins(binname):
     elif 'NJ5' in binname:
         njSB = 'NJ4f5'
     else:
-        print "No match found"
+        print "No match found:", binname
         exit(0)
 
     SBname = matchSB(binname)# + '_NJ45'
@@ -186,7 +186,7 @@ def mergeBins(fileList, pattern = 'NJ68', outdir = None):
 
     # filter out MB_SR files
     srList = [fname for fname in fileList if pattern in fname]
-    srList = [fname for fname in srList if 'SR' in fname]
+    srList = [fname for fname in srList if '_SR' in fname]
 
     if len(srList) == 0:
         print "No files found matching pattern", pattern , "+ SR"
@@ -200,7 +200,6 @@ def mergeBins(fileList, pattern = 'NJ68', outdir = None):
 
     # Loop over files
     for fname in srList:
-
         binname = getBinName(fname, pattern)
         matchbins = findMatchBins(binname)
 
@@ -213,7 +212,7 @@ def mergeBins(fileList, pattern = 'NJ68', outdir = None):
             binname = binname[:binname.find("_SR")] + '_Few'
         else:
             binname = binname[:binname.find("_SR")]
-        
+
         ofname = outdir+'/'+binname+'.merge.root'
 
         writeBins(ofname, srcdir, matchbins)
@@ -238,7 +237,7 @@ if __name__ == "__main__":
     # find files matching pattern
     fileList = glob.glob(pattern+"*.root")
 
-    bins = ['NJ5','NJ68','NJ9i']
+    bins = ['NJ5','NJ68','NJ9i']#,'Few']
 
     for bin in bins:
         print "Merging bin:", bin

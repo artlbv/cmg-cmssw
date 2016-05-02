@@ -8,7 +8,7 @@ import CMS_lumi
 
 if "/bin2Dto1Dlib_cc.so" not in ROOT.gSystem.GetLibraries():
     ROOT.gROOT.ProcessLine(".L %s/src/CMGTools/TTHAnalysis/python/plotter/bin2Dto1Dlib.cc+" % os.environ['CMSSW_BASE']);
-if "/fakeRate_cc.so" not in ROOT.gSystem.GetLibraries(): 
+if "/fakeRate_cc.so" not in ROOT.gSystem.GetLibraries():
     ROOT.gROOT.ProcessLine(".L %s/src/CMGTools/TTHAnalysis/python/plotter/fakeRate.cc+" % os.environ['CMSSW_BASE']);
 
 SAFE_COLOR_LIST=[
@@ -31,11 +31,11 @@ class PlotFile:
                 (line,more) = line.split(";")[:2]
                 more = more.replace("\\,",";")
                 for setting in [f.strip().replace(";",",") for f in more.split(',')]:
-                    if "=" in setting: 
+                    if "=" in setting:
                         (key,val) = [f.strip() for f in setting.split("=")]
                         extra[key] = eval(val)
                     else: extra[setting] = True
-            line = re.sub("#.*","",line) 
+            line = re.sub("#.*","",line)
             field = [f.strip().replace(";",":") for f in line.replace("::",";;").replace("\\:",";").split(':')]
             if len(field) == 1 and field[0] == "*":
                 if len(self._plots): raise RuntimeError, "PlotFile defaults ('*') can be specified only before all plots"
@@ -74,7 +74,7 @@ def getDataPoissonErrors(h, drawZeroBins=False, drawXbars=False):
         N = h.GetBinContent(i+1);
         dN = h.GetBinError(i+1);
         if drawZeroBins or N > 0:
-            if N > 0 and dN > 0 and abs(dN**2/N-1) > 1e-4: 
+            if N > 0 and dN > 0 and abs(dN**2/N-1) > 1e-4:
                 #print "Hey, this is not Poisson to begin with! %.2f, %.2f, neff = %.2f, yscale = %.5g" % (N, dN, (N/dN)**2, (dN**2/N))
                 yscale = (dN**2/N)
                 N = (N/dN)**2
@@ -173,16 +173,18 @@ def doTinyCmsPrelim(textLeft="_default_",textRight="_default_",hasExpo=False,tex
     if lumi      == None       : lumi      = options.lumi
     if   lumi > 3.54e+1: lumitext = "%.0f fb^{-1}" % lumi
     elif lumi > 3.54e+0: lumitext = "%.1f fb^{-1}" % lumi
-    elif lumi > 3.54e-1: lumitext = "%.2f fb^{-1}" % lumi
+    elif lumi > 3.54e-1: lumitext = "%.1f fb^{-1}" % lumi
     elif lumi > 3.54e-2: lumitext = "%.0f pb^{-1}" % (lumi*1000)
     elif lumi > 3.54e-3: lumitext = "%.1f pb^{-1}" % (lumi*1000)
     else               : lumitext = "%.2f pb^{-1}" % (lumi*1000)
     textLeft = textLeft.replace("%(lumi)",lumitext)
     textRight = textRight.replace("%(lumi)",lumitext)
     if textLeft not in ['', None]:
-        doSpam(textLeft, (.28 if hasExpo else .17)+xoffs, .955, .60+xoffs, .995, align=12, textSize=textSize)
+        #doSpam(textLeft, (.28 if hasExpo else .17)+xoffs, .955, .60+xoffs, .995, align=12, textSize=textSize)
+        doSpam(textLeft, (.16 if hasExpo else .16)+xoffs, .955, .60+xoffs, .995, align=12, textSize=textSize)
     if textRight not in ['', None]:
-        doSpam(textRight,.68+xoffs, .955, .99+xoffs, .995, align=32, textSize=textSize)
+        #doSpam(textRight,.68+xoffs, .955, .99+xoffs, .995, align=32, textSize=textSize)
+        doSpam(textRight,.67+xoffs, .955, .98+xoffs, .995, align=32, textSize=textSize)
 
 def printExtraLabel(labeltext, legPosition):
     nLines = len(labeltext.split("\\n"))
@@ -205,7 +207,7 @@ def reMax(hist,hist2,islog,factorLin=1.3,factorLog=2.0):
           max2 = max(max2, (hist2.GetBinContent(b) + hist2.GetBinError(b))*(factorLog if islog else factorLin))
     if max2 > max0:
         max0 = max2;
-        if islog: hist.GetYaxis().SetRangeUser(0.05,max0)
+        if islog: hist.GetYaxis().SetRangeUser(0.2,max0)
         else:     hist.GetYaxis().SetRangeUser(0,max0)
 
 def doShadedUncertainty(h):
@@ -261,7 +263,7 @@ def doStackSignalNorm(pspec,pmap,individuals,extrascale=1.0,norm=True):
     else:
         sig = None
         if "signal" in pmap: sig = pmap["signal"].Clone(pspec.name+"_signal_norm")
-        else: 
+        else:
             sigs = [pmap[x] for x in mca.listBackgrounds() if pmap.has_key(x) and pmap[x].Integral() > 0]
             sig = sigs[0].Clone(sigs.GetName()+"_norm")
         sig.SetFillStyle(0)
@@ -359,7 +361,7 @@ def doNormFit(pspec,pmap,mca,saveScales=False):
             syst = mca.getProcessOption(p,'NormSystematic',0.0)
             normTermName = mca.getProcessOption(p,'PegNormToProcess',p)
             normterm = w.factory('expr::norm_%s("%g*pow(%g,@0)",syst_%s[-5,5])' % (p, pmap[p].Integral(), 1+syst, normTermName))
-            if not w.pdf("systpdf_%s" % normTermName): 
+            if not w.pdf("systpdf_%s" % normTermName):
                 constterm = w.factory('Gaussian::systpdf_%s(syst_%s,0,1)' % (normTermName,normTermName))
                 constraints.add(constterm)
                 dontDelete.append((normterm,constterm))
@@ -367,7 +369,7 @@ def doNormFit(pspec,pmap,mca,saveScales=False):
                 dontDelete.append((normterm))
             coeffs.add(normterm)
             procNormMap[p] = normterm
-        else:    
+        else:
             normterm = w.factory('norm_%s[%g]' % (p, pmap[p].Integral()))
             dontDelete.append((normterm,))
             coeffs.add(normterm)
@@ -380,9 +382,9 @@ def doNormFit(pspec,pmap,mca,saveScales=False):
         model = ROOT.RooProdPdf("prod","",constraints)
     result = model.fitTo( rdhs["data"], ROOT.RooFit.Save(1) )
     totsig, totbkg = None, None
-    if "signal" in pmap and "signal" not in mca.listSignals(): 
+    if "signal" in pmap and "signal" not in mca.listSignals():
         totsig = pmap["signal"]; totsig.Reset()
-    if "background" in pmap and "background" not in mca.listBackgrounds(): 
+    if "background" in pmap and "background" not in mca.listBackgrounds():
         totbkg = pmap["background"]; totbkg.Reset()
     fitlog = []
     for p in mca.listBackgrounds() + mca.listSignals():
@@ -415,11 +417,11 @@ def doNormFit(pspec,pmap,mca,saveScales=False):
                     for b in xrange(1,htot.GetNbinsX()+1):
                         htot.SetBinError(b, hypot(htot.GetBinError(b), pmap[p].GetBinContent(b)*syst))
     pspec.setLog("Fitting", fitlog)
-    
+
 
 def doRatioHists(pspec,pmap,total,totalSyst,maxRange,fitRatio=None):
-    numkey = "data" 
-    if "data" not in pmap: 
+    numkey = "data"
+    if "data" not in pmap:
         if len(pmap) == 4 and 'signal' in pmap and 'background' in pmap:
             # do this first
             total.GetXaxis().SetLabelOffset(999) ## send them away
@@ -429,20 +431,20 @@ def doRatioHists(pspec,pmap,total,totalSyst,maxRange,fitRatio=None):
             numkey = 'signal'
             total     = pmap['background']
             totalSyst = pmap['background']
-        else:    
+        else:
             return (None,None,None,None)
     ratio = None
     if hasattr(pmap[numkey], 'poissonGraph'):
-        ratio = pmap[numkey].poissonGraph.Clone("data_div"); 
+        ratio = pmap[numkey].poissonGraph.Clone("data_div");
         for i in xrange(ratio.GetN()):
             x    = ratio.GetX()[i]
             div  = total.GetBinContent(total.GetXaxis().FindBin(x))
             ratio.SetPoint(i, x, ratio.GetY()[i]/div if div > 0 else 0)
-            ratio.SetPointError(i, ratio.GetErrorXlow(i), ratio.GetErrorXhigh(i), 
-                                   ratio.GetErrorYlow(i)/div  if div > 0 else 0, 
-                                   ratio.GetErrorYhigh(i)/div if div > 0 else 0) 
+            ratio.SetPointError(i, ratio.GetErrorXlow(i), ratio.GetErrorXhigh(i),
+                                   ratio.GetErrorYlow(i)/div  if div > 0 else 0,
+                                   ratio.GetErrorYhigh(i)/div if div > 0 else 0)
     else:
-        ratio = pmap[numkey].Clone("data_div"); 
+        ratio = pmap[numkey].Clone("data_div");
         ratio.Divide(total)
     unity  = totalSyst.Clone("sim_div");
     unity0 = total.Clone("sim_div");
@@ -460,16 +462,20 @@ def doRatioHists(pspec,pmap,total,totalSyst,maxRange,fitRatio=None):
     if ratio.ClassName() != "TGraphAsymmErrors":
         for b in xrange(1,unity.GetNbinsX()+1):
             if ratio.GetBinContent(b) == 0: continue
-            rmin = min([ rmin, ratio.GetBinContent(b) - 2*ratio.GetBinError(b) ]) 
-            rmax = max([ rmax, ratio.GetBinContent(b) + 2*ratio.GetBinError(b) ])  
+            rmin = min([ rmin, ratio.GetBinContent(b) - 2*ratio.GetBinError(b) ])
+            rmax = max([ rmax, ratio.GetBinContent(b) + 2*ratio.GetBinError(b) ])
     else:
         for i in xrange(ratio.GetN()):
-            rmin = min([ rmin, ratio.GetY()[i] - 2*ratio.GetErrorYlow(i)  ]) 
-            rmax = max([ rmax, ratio.GetY()[i] + 2*ratio.GetErrorYhigh(i) ])  
-    if rmin < maxRange[0]: rmin = maxRange[0]; 
+            rmin = min([ rmin, ratio.GetY()[i] - 2*ratio.GetErrorYlow(i)  ])
+            rmax = max([ rmax, ratio.GetY()[i] + 2*ratio.GetErrorYhigh(i) ])
+    if rmin < maxRange[0]: rmin = maxRange[0];
     if rmax > maxRange[1]: rmax = maxRange[1];
     if (rmax > 3 and rmax <= 3.4): rmax = 3.4
     if (rmax > 2 and rmax <= 2.4): rmax = 2.4
+
+    rmax = maxRange[1]
+    rmin = maxRange[0]
+
     unity.SetFillStyle(1001);
     unity.SetFillColor(ROOT.kCyan);
     unity.SetMarkerStyle(1);
@@ -507,7 +513,7 @@ def doRatioHists(pspec,pmap,total,totalSyst,maxRange,fitRatio=None):
     line.SetLineWidth(2);
     line.SetLineColor(58);
     line.Draw("L")
-    ratio.Draw("E SAME" if ratio.ClassName() != "TGraphAsymmErrors" else "PZ SAME");
+    ratio.Draw("E1 SAME" if ratio.ClassName() != "TGraphAsymmErrors" else "P E1 SAME");
     return (ratio, unity, unity0, line)
 
 def doStatTests(total,data,test,legendCorner):
@@ -543,22 +549,21 @@ def doStatTests(total,data,test,legendCorner):
         doSpam(text, .75, .85, .93, .93, align=32, textSize=0.05)
 
 
-
 legend_ = None;
-def doLegend(pmap,mca,corner="TR",textSize=0.035,cutoff=1e-2,cutoffSignals=True,mcStyle="F",legWidth=0.18):
+def doLegend(pmap,mca,corner="TR",textSize=0.035,cutoff=1e-2,cutoffSignals=True,mcStyle="F",legWidth=0.18,legBorder=True):
         if (corner == None): return
         total = sum([x.Integral() for x in pmap.itervalues()])
         sigEntries = []; bgEntries = []
         for p in mca.listSignals(allProcs=True):
             if mca.getProcessOption(p,'HideInLegend',False): continue
-            if p in pmap and pmap[p].Integral() > (cutoff*total if cutoffSignals else 0): 
+            if p in pmap and pmap[p].Integral() > (cutoff*total if cutoffSignals else 0):
                 lbl = mca.getProcessOption(p,'Label',p)
                 if options.signalPlotScale!=1: lbl=lbl+" x "+("%d"%options.signalPlotScale if floor(options.signalPlotScale)==options.signalPlotScale else "%.2f"%options.signalPlotScale)
                 sigEntries.append( (pmap[p],lbl,mcStyle) )
         backgrounds = mca.listBackgrounds(allProcs=True)
         for p in backgrounds:
             if mca.getProcessOption(p,'HideInLegend',False): continue
-            if p in pmap and pmap[p].Integral() >= cutoff*total: 
+            if p in pmap and pmap[p].Integral() >= cutoff*total:
                 lbl = mca.getProcessOption(p,'Label',p)
                 bgEntries.append( (pmap[p],lbl,mcStyle) )
         nentries = len(sigEntries) + len(bgEntries) + ('data' in pmap)
@@ -570,21 +575,55 @@ def doLegend(pmap,mca,corner="TR",textSize=0.035,cutoff=1e-2,cutoffSignals=True,
             (x1,y1,x2,y2) = (.90-legWidth, .33 + textSize*max(nentries-3,0), .90, .15)
         elif corner == "TL":
             (x1,y1,x2,y2) = (.2, .75 - textSize*max(nentries-3,0), .2+legWidth, .93)
-        
+        elif corner == "PAS":
+            #(x1,y1,x2,y2) = (0.65,0.5,0.93,0.925)
+            (x1,y1,x2,y2) = (0.75,0.5,0.95,0.925)
+
         leg = ROOT.TLegend(x1,y1,x2,y2)
         leg.SetFillColor(0)
         leg.SetShadowColor(0)
+        if not legBorder:
+            leg.SetLineColor(0)
         leg.SetTextFont(42)
+        #leg.SetTextFont(62)
         leg.SetTextSize(textSize)
-        if 'data' in pmap: 
+
+        if 'data' in pmap:
             leg.AddEntry(pmap['data'], mca.getProcessOption('data','Label','Data'), 'LPE')
         total = sum([x.Integral() for x in pmap.itervalues()])
-        for (plot,label,style) in sigEntries: leg.AddEntry(plot,label,style)
         for (plot,label,style) in  bgEntries: leg.AddEntry(plot,label,style)
         leg.Draw()
+
+        # signal legend
+        #leg2 = ROOT.TLegend(x1-0.3,y2-0.15,x2-0.3,y2)
+        #leg2 = ROOT.TLegend(0.3,0.825,0.6,0.925)
+        #leg2 = ROOT.TLegend(0.35,0.8,0.65,0.9)
+        leg2 = ROOT.TLegend(0.45,0.8,0.6,0.9)
+        #leg2 = ROOT.TLegend(0.7122483,0.4940711,0.9354027,0.9197324)
+
+        leg2.SetFillColor(0)
+        leg2.SetShadowColor(0)
+        if not legBorder:
+            leg2.SetLineColor(0)
+        leg2.SetTextFont(42)
+        #leg2.SetTextFont(62)
+        leg2.SetTextSize(textSize)
+
+        for (plot,label,style) in sigEntries:
+            if options.showIndivSigs:
+                plot.SetLineWidth(3)
+                #print plot, plot.GetLineWidth()
+                leg2.AddEntry(plot,label,"l")
+            else:
+                leg2.AddEntry(plot,label,style)
+
+        leg2.Draw()
+
         ## assign it to a global variable so it's not deleted
         global legend_;
-        legend_ = leg 
+        legend_ = leg
+        global legend2_;
+        legend2_ = leg2
         return leg
 
 class PlotMaker:
@@ -628,7 +667,7 @@ class PlotMaker:
                 xblind = [9e99,-9e99]
                 if re.match(r'(bin|x)\s*([<>]?)\s*(\+|-)?\d+(\.\d+)?|(\+|-)?\d+(\.\d+)?\s*<\s*(bin|x)\s*<\s*(\+|-)?\d+(\.\d+)?', blind):
                     xfunc = (lambda h,b: b)             if 'bin' in blind else (lambda h,b : h.GetXaxis().GetBinCenter(b));
-                    test  = eval("lambda bin : "+blind) if 'bin' in blind else eval("lambda x : "+blind) 
+                    test  = eval("lambda bin : "+blind) if 'bin' in blind else eval("lambda x : "+blind)
                     hdata = pmap['data']
                     for b in xrange(1,hdata.GetNbinsX()+1):
                         if test(xfunc(hdata,b)):
@@ -666,9 +705,9 @@ class PlotMaker:
                         raise RuntimeError, "Can't make pseudo-data for %s" % pdata.ClassName()
                     pmap["data"] = pdata
                 #
-                if not makeStack: 
+                if not makeStack:
                     for k,v in pmap.iteritems():
-                        if v.InheritsFrom("TH1"): v.SetDirectory(dir) 
+                        if v.InheritsFrom("TH1"): v.SetDirectory(dir)
                         dir.WriteTObject(v)
                     continue
                 #
@@ -676,7 +715,7 @@ class PlotMaker:
                 hists = [v for k,v in pmap.iteritems() if k != 'data']
                 total = hists[0].Clone(pspec.name+"_total"); total.Reset()
                 totalSyst = hists[0].Clone(pspec.name+"_totalSyst"); totalSyst.Reset()
-                if self._options.plotmode == "norm": 
+                if self._options.plotmode == "norm":
                     if 'data' in pmap:
                         total.GetYaxis().SetTitle(total.GetYaxis().GetTitle()+" (normalized)")
                     else:
@@ -684,16 +723,24 @@ class PlotMaker:
                     total.GetYaxis().SetDecimals(True)
                 if options.scaleSignalToData: doScaleSigNormData(pspec,pmap,mca)
                 elif options.fitData: doNormFit(pspec,pmap,mca)
-                elif options.preFitData and pspec.name == options.preFitData: 
+                elif options.preFitData and pspec.name == options.preFitData:
                     doNormFit(pspec,pmap,mca,saveScales=True)
                 #
                 for k,v in pmap.iteritems():
-                    if v.InheritsFrom("TH1"): v.SetDirectory(dir) 
+                    if v.InheritsFrom("TH1"): v.SetDirectory(dir)
                     dir.WriteTObject(v)
                 #
+
+                # norm to bin width
+                if self._options.normBinW:
+                    for p in mca.listProcesses():
+                        if p in pmap:
+                            plot = pmap[p]
+                            if 'TH1' in plot.ClassName(): plot.Scale(0.1,"width")
+
                 for p in itertools.chain(reversed(mca.listBackgrounds(allProcs=True)), reversed(mca.listSignals(allProcs=True))):
 
-                    if p in pmap: 
+                    if p in pmap:
                         plot = pmap[p]
                         if plot.Integral() == 0:
                             print 'Warning: plotting histo %s with zero integral, there might be problems in the following'%p
@@ -708,7 +755,7 @@ class PlotMaker:
                                     if plot.GetBinContent(b1,b2)<0: print 'Warning: histo %s has bin %d,%d with negative content (%f), the stack plot will probably be incorrect.'%(p,b1,b2,plot.GetBinContent(b))
 #                        if plot.Integral() <= 0: continue
                         if mca.isSignal(p): plot.Scale(options.signalPlotScale)
-                        if mca.isSignal(p) and options.noStackSig == True: continue 
+                        if mca.isSignal(p) and options.noStackSig == True: continue
                         if self._options.plotmode == "stack":
                             stack.Add(plot)
                             total.Add(plot)
@@ -734,7 +781,6 @@ class PlotMaker:
                         else:
                             plot.SetMarkerStyle(0)
 
-
                 # to get fraction
                 if self._options.fraction:
                     for plot in stack.GetHists():
@@ -742,7 +788,9 @@ class PlotMaker:
                         plot.SetLineColor(plot.GetFillColor())
                     total.Divide(total)
                     total.SetMaximum(1)
-
+                if stack.GetNhists() == 0:
+                    print "ERROR: for %s, all histograms are empty\n " % pspec.name
+                    continue
                 # define aspect ratio
                 plotformat = (1200,600) if self._options.wideplot else (600,600)
                 sf = 20./plotformat[0]
@@ -753,7 +801,7 @@ class PlotMaker:
                 stack.GetXaxis().SetTitle(pspec.getOption('XTitle',pspec.name))
                 stack.GetXaxis().SetNdivisions(pspec.getOption('XNDiv',510))
                 dir.WriteTObject(stack)
-                # 
+                #
                 if not makeCanvas and not self._options.printPlots: continue
                 doRatio = self._options.showRatio and ('data' in pmap or (self._options.plotmode != "stack" and len(pmap) == 4)) and ("TH2" not in total.ClassName())
                 # define aspect ratio
@@ -814,7 +862,7 @@ class PlotMaker:
                     else:
                         stack.Draw("SAME HIST ")
                     total.Draw("AXIS SAME")
-                else: 
+                else:
                     if self._options.errors:
                         ROOT.gStyle.SetErrorX(0.5)
                         stack.Draw("SAME E NOSTACK")
@@ -825,10 +873,11 @@ class PlotMaker:
                 if options.showMCError:
                     totalError = doShadedUncertainty(totalSyst)
                 is2D = total.InheritsFrom("TH2")
-                if 'data' in pmap: 
+                '''
+                if 'data' in pmap:
                     if options.poisson and not is2D:
                         pdata = getDataPoissonErrors(pmap['data'], False, True)
-                        pdata.Draw("PZ SAME")
+                        pdata.Draw("P E1 SAME")
                         pmap['data'].poissonGraph = pdata ## attach it so it doesn't get deleted
                     else:
                         pmap['data'].Draw("E SAME")
@@ -841,18 +890,21 @@ class PlotMaker:
                         xblind.append(blindbox) # so it doesn't get deleted
                     if options.doStatTests:
                         doStatTests(totalSyst, pmap['data'], options.doStatTests, legendCorner=pspec.getOption('Legend','TR'))
-                if pspec.hasOption('YMin') and pspec.hasOption('YMax'):
+                '''
+                if pspec.hasOption('YMin') or pspec.hasOption('YMax'):
                     total.GetYaxis().SetRangeUser(pspec.getOption('YMin',1.0), pspec.getOption('YMax',1.0))
                 #legendCutoff = pspec.getOption('LegendCutoff', 1e-5 if c1.GetLogy() else 1e-2)
+                '''
                 legendCutoff = 0
-                if self._options.plotmode == "norm": legendCutoff = 0 
+                if self._options.plotmode == "norm": legendCutoff = 0
                 doLegend(pmap,mca,corner=pspec.getOption('Legend','TR'),
                                   cutoff=legendCutoff, mcStyle=("F" if self._options.plotmode == "stack" else "L"),
-                                  cutoffSignals=not(options.showSigShape or options.showIndivSigShapes or options.showSFitShape), 
-                                  textSize=(0.045 if doRatio else 0.035),
-                                  legWidth=options.legendWidth)
+                                  cutoffSignals=not(options.showSigShape or options.showIndivSigShapes or options.showSFitShape),
+                                  textSize=( (0.045 if doRatio else 0.035) if options.legendFontSize <= 0 else options.legendFontSize ),
+                                  legWidth=options.legendWidth, legBorder=options.legendBorder)
+                '''
                 if not options.cmslumi:
-                    doTinyCmsPrelim(hasExpo = total.GetMaximum() > 9e4 and not c1.GetLogy(),textSize=(0.045 if doRatio else 0.033))
+                    doTinyCmsPrelim(hasExpo = total.GetMaximum() > 9e4 and not c1.GetLogy(),textSize=(0.045 if doRatio else 0.033)*options.topSpamSize)
                 else:
                     if 'data' in pmap:
                         doCMSlumi(c1)
@@ -861,17 +913,17 @@ class PlotMaker:
 
                 if not options.extraLabel=="": printExtraLabel(options.extraLabel,pspec.getOption('Legend','TR'))
                 signorm = None; datnorm = None; sfitnorm = None
-                if options.showSigShape or options.showIndivSigShapes or options.showIndivSigs: 
+                if options.showSigShape or options.showIndivSigShapes or options.showIndivSigs:
                     signorms = doStackSignalNorm(pspec,pmap,options.showIndivSigShapes or options.showIndivSigs,extrascale=options.signalPlotScale, norm=not options.showIndivSigs)
                     for signorm in signorms:
                         signorm.SetDirectory(dir); dir.WriteTObject(signorm)
                         reMax(total,signorm,islog)
-                if options.showDatShape: 
+                if options.showDatShape:
                     datnorm = doDataNorm(pspec,pmap)
                     if datnorm != None:
                         datnorm.SetDirectory(dir); dir.WriteTObject(datnorm)
                         reMax(total,datnorm,islog)
-                if options.showSFitShape: 
+                if options.showSFitShape:
                     (sfitnorm,sf) = doStackSigScaledNormData(pspec,pmap)
                     if sfitnorm != None:
                         sfitnorm.SetDirectory(dir); dir.WriteTObject(sfitnorm)
@@ -886,21 +938,49 @@ class PlotMaker:
                                 p1.SetFillColor(ROOT.kYellow-10)
                                 if p2: p2.SetFillColor(ROOT.kYellow-10)
                                 break
+
+                if 'data' in pmap:
+                    if options.poisson and not is2D:
+                        pdata = getDataPoissonErrors(pmap['data'], False, True)
+                        pdata.Draw("P E1 SAME")
+                        pmap['data'].poissonGraph = pdata ## attach it so it doesn't get deleted
+                    else:
+                        pmap['data'].Draw("E SAME")
+                    reMax(total,pmap['data'],islog)
+                    if xblind[0] < xblind[1]:
+                        blindbox = ROOT.TBox(xblind[0],total.GetYaxis().GetXmin(),xblind[1],total.GetMaximum())
+                        blindbox.SetFillColor(ROOT.kBlue+3)
+                        blindbox.SetFillStyle(3944)
+                        blindbox.Draw()
+                        xblind.append(blindbox) # so it doesn't get deleted
+                    if options.doStatTests:
+                        doStatTests(totalSyst, pmap['data'], options.doStatTests, legendCorner=pspec.getOption('Legend','TR'))
+
+
                 if makeCanvas: dir.WriteTObject(c1)
                 rdata,rnorm,rnorm2,rline = (None,None,None,None)
                 if doRatio:
-                    p2.cd(); 
+                    p2.cd();
                     rdata,rnorm,rnorm2,rline = doRatioHists(pspec,pmap,total,totalSyst, maxRange=options.maxRatioRange, fitRatio=options.fitRatio)
                     # write ratio also to dir
                     rdata.SetName(stack.GetName().replace("stack","ratio"))
                     dir.WriteTObject(rdata)
 
+                p1.cd()
+                legendCutoff = 0
+                if self._options.plotmode == "norm": legendCutoff = 0
+                doLegend(pmap,mca,corner=pspec.getOption('Legend','PAS'),
+                                  cutoff=legendCutoff, mcStyle=("F" if self._options.plotmode == "stack" else "L"),
+                                  cutoffSignals=not(options.showSigShape or options.showIndivSigShapes or options.showSFitShape),
+                                  textSize=( (0.045 if doRatio else 0.035) if options.legendFontSize <= 0 else options.legendFontSize ),
+                                  legWidth=options.legendWidth, legBorder=options.legendBorder)
+
                 if self._options.printPlots:
                     for ext in self._options.printPlots.split(","):
                         fdir = self._options.printDir;
                         if subname: fdir += "/"+subname;
-                        if not os.path.exists(fdir): 
-                            os.makedirs(fdir); 
+                        if not os.path.exists(fdir):
+                            os.makedirs(fdir);
                             #if os.path.exists("/afs/cern.ch"): os.system("cp /afs/cern.ch/user/g/gpetrucc/php/index.php "+fdir)
                             if os.path.exists("/afs/desy.de"): os.system("cp /afs/cern.ch/user/a/alobanov/public/php/index.php "+fdir)
                         if ext == "txt":
@@ -919,7 +999,7 @@ class PlotMaker:
                                 dump.write(fmt % (_unTLatex(mca.getProcessOption(p,'Label',p) if p not in ["signal", "background"] else p.upper()), norm, stat))
                                 if syst: dump.write(" +/- %9.2f (syst)"  % syst)
                                 dump.write("\n")
-                            if 'data' in pmap: 
+                            if 'data' in pmap:
                                 dump.write(("-"*(maxlen+45))+"\n");
                                 dump.write(("%%%ds %%7.0f\n" % (maxlen+1)) % ('DATA', pmap['data'].Integral()))
                             for logname, loglines in pspec.allLogs():
@@ -940,7 +1020,7 @@ class PlotMaker:
                                         plot.Draw("CONT0Z")
                                     else:
                                         plot.SetContour(100)
-                                        plot.Draw(pspec.getOption("PlotMode","COLZ TEXT45"))
+                                        plot.Draw(pspec.getOption("PlotMode","COLZ"))
                                     c1.Print("%s/%s_%s.%s" % (fdir, pspec.name, p, ext))
                                 if "data" in pmap and "TGraph" in pmap["data"].ClassName():
                                     pmap["data"].SetMarkerSize(pspec.getOption("MarkerSize",1.6))
@@ -949,7 +1029,7 @@ class PlotMaker:
                                         plot = pmap[p]
                                         c1.SetRightMargin(0.20)
                                         plot.SetContour(100)
-                                        plot.Draw(pspec.getOption("PlotMode","COLZ TEXT45"))
+                                        plot.Draw(pspec.getOption("PlotMode","COLZ"))
                                         pmap["data"].Draw("P SAME")
                                         c1.Print("%s/%s_data_%s.%s" % (fdir, pspec.name, p, ext))
                             else:
@@ -958,7 +1038,7 @@ class PlotMaker:
 def addPlotMakerOptions(parser):
     addMCAnalysisOptions(parser)
     parser.add_option("--ss",  "--scale-signal", dest="signalPlotScale", default=1.0, type="float", help="scale the signal in the plots by this amount");
-    parser.add_option("--cmslumi", dest="cmslumi", action="store_true", default=True, help="Do official CMS lumi text")
+    parser.add_option("--cmslumi", dest="cmslumi", action="store_true", default=False, help="Do official CMS lumi text")
     #parser.add_option("--lspam", dest="lspam",   type="string", default="CMS Simulation", help="Spam text on the right hand side");
     parser.add_option("--lspam", dest="lspam",   type="string", default="#bf{CMS} #it{Preliminary}", help="Spam text on the right hand side");
     parser.add_option("--rspam", dest="rspam",   type="string", default="%(lumi) (13 TeV)", help="Spam text on the right hand side");
@@ -982,7 +1062,7 @@ def addPlotMakerOptions(parser):
     parser.add_option("--plotmode", dest="plotmode", type="string", default="stack", help="Show as stacked plot (stack), a non-stacked comparison (nostack) and a non-stacked comparison of normalized shapes (norm)")
     parser.add_option("--rebin", dest="globalRebin", type="int", default="0", help="Rebin all plots by this factor")
     parser.add_option("--poisson", dest="poisson", action="store_true", default=True, help="Draw Poisson error bars (default)")
-    parser.add_option("--no-poisson", dest="poisson", action="store_false", default=True, help="Don't draw Poisson error bars")
+    parser.add_option("--no-poisson", dest="poisson", action="store_false", default=False, help="Don't draw Poisson error bars")
     parser.add_option("--unblind", dest="unblind", action="store_true", default=False, help="Unblind plots irrespectively of plot file")
     parser.add_option("--select-plot", "--sP", dest="plotselect", action="append", default=[], help="Select only these plots out of the full file")
     parser.add_option("--exclude-plot", "--xP", dest="plotexclude", action="append", default=[], help="Exclude these plots from the full file")
@@ -992,6 +1072,7 @@ def addPlotMakerOptions(parser):
     parser.add_option("--flagDifferences", dest="flagDifferences", action="store_true", default=False, help="Flag plots that are different (when using only two processes, and plotmode nostack")
     parser.add_option("--pseudoData", dest="pseudoData", type="string", default=None, help="If set to 'background' or 'all', it will plot also a pseudo-dataset made from background (or signal+background) with Poisson fluctuations in each bin.")
     # acdv
+    parser.add_option("--normBinW", dest="normBinW", action="store_true", default=False, help="Divide content through bin width")
     parser.add_option("--extraLabel", dest="extraLabel", default = "", help="print extra text next to the legend (several lines in case string contains \\n )")
     parser.add_option("--fraction", dest="fraction", action="store_true", default=False, help="Do Fraction plots instead")
     parser.add_option("--wide", dest="wideplot", action="store_true", default=False, help="Draw a wide canvas")
@@ -1024,5 +1105,3 @@ if __name__ == "__main__":
     plotter = PlotMaker(outfile)
     plotter.run(mca,cuts,plots)
     outfile.Close()
-
-

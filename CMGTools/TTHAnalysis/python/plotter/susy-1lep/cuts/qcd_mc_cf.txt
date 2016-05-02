@@ -1,6 +1,6 @@
 == 1 hard lep: nLep == 1 && Lep_pt > 25 && nVeto == 0
-#ele: nEl == 1
-mu: nMu == 1
+ele: nEl == 1
+#mu: nMu == 1
 #selected: Selected == 1
 #anti: Selected == -1
 
@@ -23,7 +23,7 @@ HT > 500: HT > 500
 #HT2i: HT > 1250
 
 #Nb >= 1: nBJet >= 1
-#Nb = 0: nBJet == 0
+Nb = 0: nBJet == 0
 
 # extra cuts for Anti
 #Lp > 0.5: Lp > 0.5

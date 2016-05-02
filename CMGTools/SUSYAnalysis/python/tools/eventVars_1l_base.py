@@ -233,7 +233,7 @@ class EventVars1L_base:
 
         self.branches = [
             ## general event info
-            'Run','Event','Lumi','Xsec',
+            'Run','Lumi','Xsec',("Event","l"),
             ## leptons
             'nLep', 'nVeto',
             'nEl','nMu',
@@ -797,7 +797,7 @@ class EventVars1L_base:
             if event.isData and nJet30C >= 5:
                 isSR = - isSR
         # Multi-B SRs
-        else:
+        elif nJet30C < 99:
             if LT < 250:   isSR = 0
             elif LT < 350: isSR = dPhi > 1.0
             elif LT < 600: isSR = dPhi > 0.75

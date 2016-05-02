@@ -134,9 +134,9 @@ class ComponentCreator(object):
         )
         return component
 
-    def getFilesFromDESY(self, dataset, user, pattern, run_range=None):
+    def getFilesFromDESY(self, dataset, user, pattern, run_range=None,json=None):
         # print 'getting files for', dataset,user,pattern
-        ds = createDataset( user, dataset, pattern, readcache=True, run_range=run_range )
+        ds = createDataset( user, dataset, pattern, readcache=True, run_range=run_range, json=json )
         files = ds.listOfGoodFiles()
         mapping = 'dcap://dcache-cms-dcap.desy.de/pnfs/desy.de/cms/tier2/%s'
         return [ mapping % f for f in files]
@@ -153,14 +153,15 @@ class ComponentCreator(object):
         )
         return component
 
-    def makeDataComponentDESY(self,name,dataset,user,pattern,json=None,run_range=None,triggers=[],vetoTriggers=[]):
+    def makeDataComponentDESY(self,name,dataset,user,pattern,json=None,run_range=None,triggers=[],vetoTriggers=[],jsonFilter=False):
         component = cfg.DataComponent(
             #dataset = dataset,
             name = name,
-            files = self.getFilesFromDESY(dataset,user,pattern,run_range=run_range),
+#            files = self.getFilesFromDESY(dataset,user,pattern,run_range=run_range),
+            files = self.getFilesFromDESY(dataset,user,pattern,run_range=run_range,json=(json if jsonFilter else None)),
             intLumi = 1,
             triggers = triggers,
-            json = json
+            json = (json if jsonFilter else None)
             )
         component.vetoTriggers = vetoTriggers
         component.dataset_entries = self.getPrimaryDatasetEntries(dataset,user,pattern)
@@ -221,6 +222,8 @@ class ComponentCreator(object):
         component.json = json
         component.vetoTriggers = vetoTriggers
         component.dataset_entries = self.getPrimaryDatasetEntries(dataset,user,pattern)
+        component.dataset = dataset
+        component.run_range = run_range
         return component
 
     def getFiles(self, dataset, user, pattern, useAAA=False, run_range=None, json=None):

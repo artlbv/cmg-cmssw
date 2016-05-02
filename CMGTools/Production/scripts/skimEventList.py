@@ -40,7 +40,7 @@ def skimSet(evList,certList):
     newList = set()
 
     for (run,ls,evt) in evList:
-        if not checkRunLSinList(run,ls,certList):
+        if checkRunLSinList(run,ls,certList):
             newList.add((run,ls,evt))
     return newList
 
@@ -69,8 +69,6 @@ if __name__ == "__main__":
         outname = flistName.replace(".txt","") + "_skim_" + fjsonName.replace(".json",".txt")
 
     print "Outname is:", outname
-
-    #tfile  = TFile(infile, "READ")
 
     certList = readJSON(fjsonName)
     evList = readList(flistName)

@@ -42,11 +42,11 @@ def getScanYields(hist,leptype = ('lep','sele')):
         for ybin in range(1,hist.GetNbinsY()+1):
 
             ycnt = hist.GetBinContent(xbin,ybin)
-            yerr = hist.GetBinError(xbin,ybin)
 
             # skip empty bins for now
             if ycnt == 0: continue
 
+            yerr = hist.GetBinError(xbin,ybin)
             xpar = hist.GetXaxis().GetBinCenter(xbin); #xpar = int(xpar)
             ypar = hist.GetYaxis().GetBinCenter(ybin); #ypar = int(ypar)
 

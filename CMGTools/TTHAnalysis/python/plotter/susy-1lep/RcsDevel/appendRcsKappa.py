@@ -526,22 +526,23 @@ if __name__ == "__main__":
     print 'Found these samples:', allSamps
 
     # make poisson errors for
-    poisSamps = ["background","QCD","EWK"]
+    poisSamps = []#"background","QCD","EWK"]
     poisSamps = [s for s in poisSamps if s in allSamps]
     # do qcd prediciton for:
 
     qcdPredSamps =  ["background","data","QCD","background_poisson","QCD_poisson"]
-    #qcdPredSamps = [s for s in qcdPredSamps if s in allSamps]
+    #qcdPredSamps =  ["background","QCD","background_poisson","QCD_poisson"]
+    qcdPredSamps = [s for s in qcdPredSamps if s in allSamps]
     # samples to make full prediciton
     predSamps = allSamps + ["background_poisson","QCD_poisson"]
-    #predSaps = [s for s in predSamps if s in allSamps]
+    predSaps = [s for s in predSamps if s in allSamps]
 
-    replaceEmptyDataBinsWithMC(fileList)
+    #replaceEmptyDataBinsWithMC(fileList)
 
     makePoissonErrors(fileList, poisSamps)
     makeQCDsubtraction(fileList, qcdPredSamps)
     makeKappaHists(fileList)#, predSamps)
     makePredictHists(fileList)#, predSamps)
-    makeClosureHists(fileList, predSamps)
+    #makeClosureHists(fileList, predSamps)
 
     print 'Finished'

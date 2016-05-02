@@ -1,0 +1,7 @@
+#nJet:	nJets30Clean	: 20,0,20   ;  XTitle="jet multiplicity", Logy, IncludeOverflows=False, YMin=0.2, XNDiv=510
+#nJet_SR:	if3(isSR == 1, nJets30Clean, -1) : 20,0,20   ;  XTitle="jet multiplicity", Logy, IncludeOverflows=False, YMin=0.2, XNDiv=510
+#nJet_CR:	if3(isSR == 0, nJets30Clean, -1) : 20,0,20   ;  XTitle="jet multiplicity", Logy, IncludeOverflows=False, YMin=0.2, XNDiv=510
+
+nJet:	nJets30Clean	: 10,-0.5,9.5   ;  XTitle="jet multiplicity", Logy, IncludeOverflows=True, YMin=0.2, XNDiv=510
+nJet_SR:	if3(isSR == 1, nJets30Clean, -1) : 10,-0.5,9.5   ;  XTitle="jet multiplicity", Logy, IncludeOverflows=True, YMin=0.2, XNDiv=510
+nJet_CR:	if3(isSR == 0, nJets30Clean, -1) : 10,-0.5,9.5   ;  XTitle="jet multiplicity", Logy, IncludeOverflows=True, YMin=0.2, XNDiv=510

@@ -10,7 +10,7 @@
 ## the maximum memory usage of this job
 ##$ -l h_vmem=3999M
 #$ -l h_vmem=7999M
-#$ -l h_fsize=4999M
+#$ -l h_fsize=7999M
 ## operating system
 #$ -l distro=sld6
 ## architecture
